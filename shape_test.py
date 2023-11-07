@@ -29,6 +29,10 @@ prjfile_path = 'ExampleFiles\\2022_2015_allfires.prj'
 # Read the shapefile into a GeoDataFrame
 gdf = gpd.read_file(shapefile_path)
 
+output_file_path = 'gdf.txt'
+gdf.to_csv(output_file_path, sep='\t', index=False)
+print("GDF saved to file")
+
 # Define the original projection using the provided WKT format
 original_proj_wkt = read_prj_file(prjfile_path)
 
