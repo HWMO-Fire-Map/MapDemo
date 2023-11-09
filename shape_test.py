@@ -44,7 +44,6 @@ def drop_multipolygons(gdf):
     return gdf
 
 def filter_geo_data(gdf, years, islands):
-
     filtered_rows = []
 
     # Iterate over rows of the GeoDataFrame
@@ -52,13 +51,20 @@ def filter_geo_data(gdf, years, islands):
         if row['Year'] in str(years) and row['Island'] in islands:
             filtered_rows.append(row)
     
-    # Convert the list of filtered rows back to a GeoDataFrame
-    filtered_gdf = gpd.GeoDataFrame(filtered_rows, crs=gdf.crs, geometry='geometry')
-    
-    return filtered_gdf
+    if not filtered_rows:
+        return gpd.GeoDataFrame(columns=gdf.columns, crs=gdf.crs)
+    else:
+        # Convert the list of filtered rows back to a GeoDataFrame
+        filtered_gdf = gpd.GeoDataFrame(filtered_rows, crs=gdf.crs, geometry='geometry')
+        
+        return filtered_gdf
 
 @app.route('/api/data', methods=['GET'])
 def get_filtered_data():
+
+    # Retrieve query parameters for 'years' and 'islands'
+    years_get = request.args.getlist('years')
+    islands_get = request.args.getlist('islands')
 
     # Location of the example shape file and project files
     shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
@@ -70,7 +76,9 @@ def get_filtered_data():
     # Call the drop_multipolygons function to remove MultiPolygons
     gdf = drop_multipolygons(gdf)
 
-    gdf = filter_geo_data(gdf, [2018,2019], ['Guam', 'Yugo'])
+    gdf = filter_geo_data(gdf, years_get, islands_get)
+    print(years_get)
+    print(islands_get)
 
     # Get unique years and islands
     unique_islands = list(gdf['Island'].unique())
@@ -159,34 +167,33 @@ def get_filtered_data():
 
     response_data = {
         "uniqueYears": unique_years_str,
-        "uniqueIslands": unique_islands
+        "uniqueIslands": unique_islands,
     }
 
     return jsonify(response_data)
 
 
-'''
-@app.route('/api/data', methods=['GET'])
-def get_filtered_data():
+
+@app.route('/api/list', methods=['GET'])
+def get_default_data():
 
     # Location of the example shape file and project files
     shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
-    prjfile_path = 'ExampleFiles\\2022_2015_allfires.prj'
 
     # Read the shapefile into a GeoDataFrame
     gdf = gpd.read_file(shapefile_path)
 
     # Get unique years and islands
-    unique_islands = list(gdf['Island'].unique())
-    unique_years = list(gdf['Year'].unique())
+    total_islands = list(gdf['Island'].unique())
+    total_years = list(gdf['Year'].unique())
 
     response_data = {
-        "uniqueYears": unique_years,
-        "uniqueIslands": unique_islands
+        "allYears": total_years,
+        "allIslands": total_islands
     }
 
     return jsonify(response_data)
-'''
+
 
 if __name__ == '__main__':
     app.run(debug=True)
