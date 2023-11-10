@@ -77,14 +77,10 @@ def get_filtered_data():
     gdf = drop_multipolygons(gdf)
 
     gdf = filter_geo_data(gdf, years_get, islands_get)
-    print(years_get)
-    print(islands_get)
 
     # Get unique years and islands
     unique_islands = list(gdf['Island'].unique())
     unique_years_str = list(gdf['Year'].unique())
-    print(unique_islands)
-    print(unique_years_str)
 
     # Convert 'Year' column to integer type if it's not already
     gdf['Year'] = gdf['Year'].astype(int)
@@ -160,8 +156,11 @@ def get_filtered_data():
 
     # Print the map projection type
     print("Map Projection Type:", gdf.crs)
+    map_save = 'D:\Documents\GitHub\MapDemo\\react\\firemap\public\\filtered_map.html'
+    print(f"saving to {map_save}")
+    m.save(map_save)
 
-    m.save('map_with_geojson_polygon.html')
+    map_data = m.to_json()
 
     # Return GeoJSON data, map object, unique years, and unique islands
 

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import axios from 'axios';
+import 'leaflet/dist/leaflet.css';
 
 const App = () => {
   const [uniqueYears, setUniqueYears] = useState([]);
   const [uniqueIslands, setUniqueIslands] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedIsland, setSelectedIsland] = useState('');
-
+  const [geojsonData, setGeojsonData] = useState(null);
+  const [mapHtmlUrl, setMapHtmlUrl] = useState('/filtered_map.html');
   // Fetch default data when the component mounts
   useEffect(() => {
     axios.get('http://localhost:5000/api/list')
@@ -31,7 +34,9 @@ const App = () => {
       }
     })
     .then(response => {
-      const { uniqueYears, uniqueIslands } = response.data;
+      const { geojsonData, uniqueYears, uniqueIslands } = response.data;
+      console.log('GeoJSON Data:', geojsonData); // Log GeoJSON data to the console
+      setGeojsonData(geojsonData);
       setUniqueYears(uniqueYears);
       setUniqueIslands(uniqueIslands);
     })
@@ -62,6 +67,13 @@ const App = () => {
       </div>
       {/* Button to fetch data */}
       <button onClick={fetchData}>Fetch Data</button>
+
+      {/* Leaflet Map */}
+      {mapHtmlUrl && (
+        <div style={{ height: '500px', width: '100%' }}>
+          <iframe title="Folium Map" src={mapHtmlUrl} width="100%" height="100%" frameBorder="0" />
+        </div>
+      )}
 
       {/* Display unique years */}
       <h1>Unique Years:</h1>
