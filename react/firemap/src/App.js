@@ -2,14 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
+import { DateRangePicker } from 'react-date-range';
+import 'react-date-range/dist/styles.css'; // main style file
+import 'react-date-range/dist/theme/default.css'; // theme css file
 
 const App = () => {
   const [uniqueYears, setUniqueYears] = useState([]);
   const [uniqueIslands, setUniqueIslands] = useState([]);
-  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedDates, setSelectedDates] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection'
+    }
+  ]);
   const [selectedIsland, setSelectedIsland] = useState('');
   const [geojsonData, setGeojsonData] = useState(null);
   const [mapHtmlUrl, setMapHtmlUrl] = useState('/filtered_map.html');
+
   // Fetch default data when the component mounts
   useEffect(() => {
     axios.get('http://localhost:5000/api/list')
@@ -17,7 +27,13 @@ const App = () => {
         const { allYears, allIslands } = response.data;
         setUniqueYears(allYears);
         setUniqueIslands(allIslands);
-        setSelectedYear(allYears[0]); // Set default selected year
+        setSelectedDates([
+          {
+            startDate: new Date(allYears[0], 0, 1),
+            endDate: new Date(allYears[0], 11, 31),
+            key: 'selection'
+          }
+        ]); // Set default selected date range for the first year
         setSelectedIsland(allIslands[0]); // Set default selected island
       })
       .catch(error => {
@@ -25,11 +41,13 @@ const App = () => {
       });
   }, []);
 
-  // Function to fetch data based on selected year and island
+  // Function to fetch data based on selected dates and island
   const fetchData = () => {
+    const startDate = selectedDates[0].startDate;
+    const endDate = selectedDates[0].endDate;
     axios.get('http://localhost:5000/api/data', {
       params: {
-        years: selectedYear,
+        years: `${startDate.getFullYear()}-${endDate.getFullYear()}`, // Send the selected year range
         islands: selectedIsland
       }
     })
@@ -47,14 +65,13 @@ const App = () => {
 
   return (
     <div>
-      {/* Dropdown for selecting year */}
+      {/* Date range picker for selecting years */}
       <div>
-        <label>Select Year:</label>
-        <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
-          {uniqueYears.map(year => (
-            <option key={year} value={year}>{year}</option>
-          ))}
-        </select>
+        <label>Select Year Range:</label>
+        <DateRangePicker
+          ranges={selectedDates}
+          onChange={item => setSelectedDates([item.selection])}
+        />
       </div>
       {/* Dropdown for selecting island */}
       <div>

@@ -43,6 +43,22 @@ def drop_multipolygons(gdf):
     gdf = gdf[gdf['geometry'].apply(lambda geom: geom.geom_type == 'Polygon')]
     return gdf
 
+def parse_year_range(year_range):
+    """
+    Parse input year range in the format ['2010-2015'] and generate individual years as a list.
+    
+    Args:
+        year_range (list): A list containing a year range in the format ['start-end'].
+        
+    Returns:
+        list: A list containing individual years from the input range.
+    """
+    years = []
+    if year_range and len(year_range) == 1:
+        start, end = map(int, year_range[0].strip("[]").split('-'))
+        years = [str(year) for year in range(start, end + 1)]
+    return years
+
 def filter_geo_data(gdf, years, islands):
     filtered_rows = []
 
@@ -65,6 +81,8 @@ def get_filtered_data():
     # Retrieve query parameters for 'years' and 'islands'
     years_get = request.args.getlist('years')
     islands_get = request.args.getlist('islands')
+    years_get = parse_year_range(years_get)
+    print(years_get)
 
     # Location of the example shape file and project files
     shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
@@ -180,11 +198,11 @@ def get_default_data():
     shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
 
     # Read the shapefile into a GeoDataFrame
-    gdf = gpd.read_file(shapefile_path)
+    gdf_total = gpd.read_file(shapefile_path)
 
     # Get unique years and islands
-    total_islands = list(gdf['Island'].unique())
-    total_years = list(gdf['Year'].unique())
+    total_islands = list(gdf_total['Island'].unique())
+    total_years = list(gdf_total['Year'].unique())
 
     response_data = {
         "allYears": total_years,
