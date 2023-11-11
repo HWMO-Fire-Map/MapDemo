@@ -43,28 +43,37 @@ def drop_multipolygons(gdf):
     gdf = gdf[gdf['geometry'].apply(lambda geom: geom.geom_type == 'Polygon')]
     return gdf
 
-def parse_year_range(year_range):
-    """
-    Parse input year range in the format ['2010-2015'] and generate individual years as a list.
-    
-    Args:
-        year_range (list): A list containing a year range in the format ['start-end'].
-        
-    Returns:
-        list: A list containing individual years from the input range.
-    """
-    years = []
-    if year_range and len(year_range) == 1:
-        start, end = map(int, year_range[0].strip("[]").split('-'))
-        years = [str(year) for year in range(start, end + 1)]
-    return years
+def convert_months(months_list):
+    # Check if the input list is not empty
+    if months_list and len(months_list) == 1:
+        # Access the first (and only) element of the list
+        months_string = months_list[0]
+        # Split the string into a list using ',' as the delimiter
+        months_list = months_string.split(',')
+        # Remove any leading or trailing whitespaces from each month
+        months_list = [month.strip() for month in months_list]
+        return months_list
+    else:
+        return []
 
-def filter_geo_data(gdf, years, islands):
+def filter_geo_data(gdf, years, months, islands):
     filtered_rows = []
+
+    #if nothing is selected choose all
+    if years == ['']:
+        years = list(gdf['Year'].unique())
+    if months == ['']:
+        months = list(gdf['FireMonth'].unique())
+    if islands == ['']:
+        islands = list(gdf['Island'].unique())
+
+    print(years)
+    print(months)
+    print(islands)
 
     # Iterate over rows of the GeoDataFrame
     for index, row in gdf.iterrows():
-        if row['Year'] in str(years) and row['Island'] in islands:
+        if row['Year'] in str(years) and row['FireMonth'] in months and row['Island'] in islands:
             filtered_rows.append(row)
     
     if not filtered_rows:
@@ -80,9 +89,10 @@ def get_filtered_data():
 
     # Retrieve query parameters for 'years' and 'islands'
     years_get = request.args.getlist('years')
+    months_get = request.args.getlist('months')
     islands_get = request.args.getlist('islands')
-    years_get = parse_year_range(years_get)
-    print(years_get)
+    #convert the list object to a commma seperated list
+    split_months = convert_months(months_get)
 
     # Location of the example shape file and project files
     shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
@@ -94,11 +104,12 @@ def get_filtered_data():
     # Call the drop_multipolygons function to remove MultiPolygons
     gdf = drop_multipolygons(gdf)
 
-    gdf = filter_geo_data(gdf, years_get, islands_get)
+    gdf = filter_geo_data(gdf, years_get, split_months, islands_get)
 
     # Get unique years and islands
     unique_islands = list(gdf['Island'].unique())
     unique_years_str = list(gdf['Year'].unique())
+    unique_months_str = list(gdf['FireMonth'].unique())
 
     # Convert 'Year' column to integer type if it's not already
     gdf['Year'] = gdf['Year'].astype(int)
@@ -160,9 +171,9 @@ def get_filtered_data():
     # Create the legend HTML content
     legend_html = '''
         <div style="position: fixed; 
-                    bottom: 50px; right: 50px; width: 100px; height: 150px; 
-                    border:2px solid grey; z-index:9999; font-size:14px;
-                    background-color:white; opacity:0.9">
+                bottom: 20px; right: 20px; width: 60px; height: {len(unique_years) * 20}px; 
+                border:2px solid grey; z-index:9999; font-size:14px;
+                background-color:white; opacity:0.9">
         '''
     for year, color in year_colors.items():
         legend_html += '<i style="background:{};width:10px;height:10px;float:left;margin-right:5px;"></i> {}<br>'.format(color, year)
@@ -203,10 +214,12 @@ def get_default_data():
     # Get unique years and islands
     total_islands = list(gdf_total['Island'].unique())
     total_years = list(gdf_total['Year'].unique())
+    unique_months_str = list(gdf_total['FireMonth'].unique())
 
     response_data = {
         "allYears": total_years,
-        "allIslands": total_islands
+        "allIslands": total_islands,
+        "allMonths": unique_months_str
     }
 
     return jsonify(response_data)
