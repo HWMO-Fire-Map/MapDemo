@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
+import { Button, Drawer, AppBar, Toolbar, Typography, Select, MenuItem, IconButton } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import './App.css'; // Import the CSS file
 
 const App = () => {
@@ -79,46 +82,58 @@ const App = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {/* Container for Collapse Sidebar Button */}
-      <div style={{ 
-        alignSelf: 'flex-start', 
-        marginTop: '20px',
-        marginBottom: '0px',
-        marginRight: '0px',
-        marginLeft: '0px',
-        padding: '0px'
-      }}>
-        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-          {sidebarCollapsed ? '->' : '<-'}
-        </button>
-      </div>
+    <div>
+      {/* Header */}
+      <AppBar position="static" style={{ backgroundColor: '#1D6069' }}>
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
+            HWMO Fire Data
+          </Typography>
+          <Button variant="contained" style={{ backgroundColor: '#fff', color: '#1D6069' }}>
+            Login
+          </Button>
+        </Toolbar>
+      </AppBar>
 
+      {/* Container for Collapse Sidebar Button */}
+      <IconButton
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        sx={{
+          borderTopRightRadius: sidebarCollapsed ? '10px' : '10px',
+          position: 'absolute',
+          zIndex: 2,
+          marginTop: '105px',
+          marginLeft: sidebarCollapsed ? '0px' : '300px',
+          transition: 'margin 0.5s ease-in-out',
+          backgroundColor: '#1D6069', // Set button background color
+          color: '#ffffff', // Set button text color
+        }}
+      >
+        {sidebarCollapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
+      </IconButton>
       {/* Map and Sidebar */}
       <div style={{ display: 'flex', flex: 1 }}>
         {/* Sidebar */}
-        <div
-          style={{
-            marginBottom: '20px',
-            //paddingLeft: '20px',
-            paddingLeft: sidebarCollapsed ? '20px' : '20px',
-            paddingRight: sidebarCollapsed ? '0px': '20px',
-            width: sidebarCollapsed ? '0px' : '300px',
-            opacity: sidebarCollapsed ? '0.8' : '1',
-            overflow: 'hidden',
-            transition: 'width 0.5s ease-in-out, opacity 0.5s ease-in-out',
-            backgroundColor: 'rgba(29, 96, 105, 0.8)', // RGB color with 0.8 (80%) alpha
-            borderTopRightRadius: '10px', // Round the top-right corner
-            borderBottomRightRadius: '10px', // Round the bottom-right corner
+        <Drawer
+          variant="persistent"
+          anchor="left"
+          open={!sidebarCollapsed}
+          PaperProps={{
+            sx: {
+              width: '300px',
+              backgroundColor: 'rgba(0, 183, 219, 1)',
+              borderTopRightRadius: '10px',
+              borderBottomRightRadius: '10px',
+            },
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <div>
-              <h2>
-                <button onClick={() => setYearDropdownVisible(!yearDropdownVisible)}>
+              <Typography variant="h6">
+                <Button onClick={() => setYearDropdownVisible(!yearDropdownVisible)}>
                   Toggle Year Range
-                </button>
-              </h2>
+                </Button>
+              </Typography>
               {yearDropdownVisible && (
                 <div>
                   {uniqueYears.map(year => (
@@ -141,11 +156,11 @@ const App = () => {
               )}
             </div>
             <div>
-              <h2>
-                <button onClick={() => setMonthDropdownVisible(!monthDropdownVisible)}>
+              <Typography variant="h6">
+                <Button onClick={() => setMonthDropdownVisible(!monthDropdownVisible)}>
                   Toggle Month Range
-                </button>
-              </h2>
+                </Button>
+              </Typography>
               {monthDropdownVisible && (
                 <div>
                   {uniqueMonths.map(month => (
@@ -168,29 +183,29 @@ const App = () => {
               )}
             </div>
           </div>
-          <h2>Select Island:</h2>
-          <div>
-            <select value={selectedIsland} onChange={(e) => setSelectedIsland(e.target.value)}>
-              {uniqueIslands.map(island => (
-                <option key={island} value={island}>{island}</option>
-              ))}
-            </select>
-          </div>
-          <button onClick={fetchData}>Fetch Data</button>
-          <button onClick={handleDownload}>Download Map</button>
-        </div>
+          <Typography variant="h6">Select Island:</Typography>
+          <Select value={selectedIsland} onChange={(e) => setSelectedIsland(e.target.value)}>
+            {uniqueIslands.map(island => (
+              <MenuItem key={island} value={island}>
+                {island}
+              </MenuItem>
+            ))}
+          </Select>
+          <Button onClick={fetchData}>Fetch Data</Button>
+          <Button onClick={handleDownload}>Download Map</Button>
+        </Drawer>
 
         {/* Map */}
         <div style={{ 
           flex: 1, 
           paddingLeft: '20px',
           paddingRight: '20px',
-          paddingTop: '0px',
+          paddingTop: '20px',
           paddingBottom: '20px',
         
         }}>
           {mapHtmlUrl && (
-            <MapContainer style={{ height: '90vh', width: '100%' }}>
+            <MapContainer style={{ height: '80vh', width: '100%' }}>
               <iframe title="Folium Map" src={mapHtmlUrl} width="100%" height="100%" frameBorder="0" />
             </MapContainer>
           )}
