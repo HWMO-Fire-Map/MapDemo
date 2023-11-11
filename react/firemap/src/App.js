@@ -97,87 +97,88 @@ const App = () => {
       {/* Map and Sidebar */}
       <div style={{ display: 'flex', flex: 1 }}>
         {/* Sidebar */}
-        {!sidebarCollapsed && (
-          <div style={{ 
-            width: '300px',
-            marginTop: '0px',
+        <div
+          style={{
             marginBottom: '20px',
-            padding: '20px', 
-            overflow: 'hidden', 
-            transition: 'width s', 
+            //paddingLeft: '20px',
+            paddingLeft: sidebarCollapsed ? '20px' : '20px',
+            paddingRight: sidebarCollapsed ? '0px': '20px',
+            width: sidebarCollapsed ? '0px' : '300px',
+            opacity: sidebarCollapsed ? '0.8' : '1',
+            overflow: 'hidden',
+            transition: 'width 0.5s ease-in-out, opacity 0.5s ease-in-out',
             backgroundColor: 'rgba(29, 96, 105, 0.8)', // RGB color with 0.8 (80%) alpha
             borderTopRightRadius: '10px', // Round the top-right corner
             borderBottomRightRadius: '10px', // Round the bottom-right corner
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <h2>
-                  <button onClick={() => setYearDropdownVisible(!yearDropdownVisible)}>
-                    Toggle Year Range
-                  </button>
-                </h2>
-                {yearDropdownVisible && (
-                  <div>
-                    {uniqueYears.map(year => (
-                      <label key={year} style={{ display: 'block' }}>
-                        <input
-                          type="checkbox"
-                          value={year}
-                          checked={selectedYears.includes(year)}
-                          onChange={() => {
-                            const newSelectedYears = selectedYears.includes(year)
-                              ? selectedYears.filter(selectedYear => selectedYear !== year)
-                              : [...selectedYears, year];
-                            setSelectedYears(newSelectedYears);
-                          }}
-                        />
-                        {year}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div>
-                <h2>
-                  <button onClick={() => setMonthDropdownVisible(!monthDropdownVisible)}>
-                    Toggle Month Range
-                  </button>
-                </h2>
-                {monthDropdownVisible && (
-                  <div>
-                    {uniqueMonths.map(month => (
-                      <label key={month} style={{ display: 'block' }}>
-                        <input
-                          type="checkbox"
-                          value={month}
-                          checked={selectedMonths.includes(month)}
-                          onChange={() => {
-                            const newSelectedMonths = selectedMonths.includes(month)
-                              ? selectedMonths.filter(selectedMonth => selectedMonth !== month)
-                              : [...selectedMonths, month];
-                            setSelectedMonths(newSelectedMonths);
-                          }}
-                        />
-                        {month}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <h2>Select Island:</h2>
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <div>
+              <h2>
+                <button onClick={() => setYearDropdownVisible(!yearDropdownVisible)}>
+                  Toggle Year Range
+                </button>
+              </h2>
+              {yearDropdownVisible && (
+                <div>
+                  {uniqueYears.map(year => (
+                    <label key={year} style={{ display: 'block' }}>
+                      <input
+                        type="checkbox"
+                        value={year}
+                        checked={selectedYears.includes(year)}
+                        onChange={() => {
+                          const newSelectedYears = selectedYears.includes(year)
+                            ? selectedYears.filter(selectedYear => selectedYear !== year)
+                            : [...selectedYears, year];
+                          setSelectedYears(newSelectedYears);
+                        }}
+                      />
+                      {year}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <h2>
+                <button onClick={() => setMonthDropdownVisible(!monthDropdownVisible)}>
+                  Toggle Month Range
+                </button>
+              </h2>
+              {monthDropdownVisible && (
+                <div>
+                  {uniqueMonths.map(month => (
+                    <label key={month} style={{ display: 'block' }}>
+                      <input
+                        type="checkbox"
+                        value={month}
+                        checked={selectedMonths.includes(month)}
+                        onChange={() => {
+                          const newSelectedMonths = selectedMonths.includes(month)
+                            ? selectedMonths.filter(selectedMonth => selectedMonth !== month)
+                            : [...selectedMonths, month];
+                          setSelectedMonths(newSelectedMonths);
+                        }}
+                      />
+                      {month}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <h2>Select Island:</h2>
+          <div>
             <select value={selectedIsland} onChange={(e) => setSelectedIsland(e.target.value)}>
               {uniqueIslands.map(island => (
                 <option key={island} value={island}>{island}</option>
               ))}
             </select>
-            </div>
-            <button onClick={fetchData}>Fetch Data</button>
-            <button onClick={handleDownload}>Download Map</button>
-            
           </div>
-        )}
+          <button onClick={fetchData}>Fetch Data</button>
+          <button onClick={handleDownload}>Download Map</button>
+        </div>
 
         {/* Map */}
         <div style={{ 
@@ -185,7 +186,7 @@ const App = () => {
           paddingLeft: '20px',
           paddingRight: '20px',
           paddingTop: '0px',
-          paddingBottom: '20px'
+          paddingBottom: '20px',
         
         }}>
           {mapHtmlUrl && (
