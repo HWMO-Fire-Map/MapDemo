@@ -79,29 +79,46 @@ const App = () => {
   };
 
   return (
+
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {/* Container for Collapse Sidebar Button */}
-      <div style={{ 
-        alignSelf: 'flex-start', 
-        marginTop: '20px',
-        marginBottom: '0px',
-        marginRight: '0px',
-        marginLeft: '0px',
-        padding: '0px'
+      {/* Header */}
+      <header style={{ 
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0px',
+        backgroundColor: '#1D6069', // Set header background color
+        color: '#ffffff', // Set text color
       }}>
-        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-          {sidebarCollapsed ? '->' : '<-'}
+        <h1>HWMO Fire Data</h1>
+        {/* You can replace the following button with your actual login button */}
+        <button style={{ padding: '5px 10px', backgroundColor: '#fff', color: '#1D6069' }}>
+          Login
         </button>
-      </div>
+      </header>
+      {/* Container for Collapse Sidebar Button */}
+      <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        style={{
+          borderTopRightRadius: sidebarCollapsed ? '10px' : '10px', // Adjust radius based on collapsed state
+          position: 'absolute', // Position the button absolutely
+          zIndex: 2, // Set a higher z-index to overlay it on top
+          marginTop: '105px',
+          marginLeft: sidebarCollapsed ? '0px' : '312px', // Adjust margin based on sidebar state
+          transition: 'margin 0.5s ease-in-out', // Add transition for a smooth effect
+        }}
+      >
+        {sidebarCollapsed ? '->' : '<-'}
+      </button>
 
       {/* Map and Sidebar */}
       <div style={{ display: 'flex', flex: 1 }}>
         {/* Sidebar */}
         <div
           style={{
-            marginBottom: '20px',
+            marginBottom: sidebarCollapsed ? '0px' : '20px',
             //paddingLeft: '20px',
-            paddingLeft: sidebarCollapsed ? '20px' : '20px',
+            marginTop: '20px',
+            paddingLeft: sidebarCollapsed ? '28px' : '20px',
             paddingRight: sidebarCollapsed ? '0px': '20px',
             width: sidebarCollapsed ? '0px' : '300px',
             opacity: sidebarCollapsed ? '0.8' : '1',
@@ -185,12 +202,12 @@ const App = () => {
           flex: 1, 
           paddingLeft: '20px',
           paddingRight: '20px',
-          paddingTop: '0px',
+          paddingTop: '20px',
           paddingBottom: '20px',
         
         }}>
           {mapHtmlUrl && (
-            <MapContainer style={{ height: '90vh', width: '100%' }}>
+            <MapContainer style={{ height: '80vh', width: '100%' }}>
               <iframe title="Folium Map" src={mapHtmlUrl} width="100%" height="100%" frameBorder="0" />
             </MapContainer>
           )}
