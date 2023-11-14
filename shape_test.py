@@ -55,6 +55,19 @@ def convert_months(months_list):
         return months_list
     else:
         return []
+    
+def convert_islands(island_list):
+    # Check if the input list is not empty
+    if island_list and len(island_list) == 1:
+        # Access the first (and only) element of the list
+        island_string = island_list[0]
+        # Split the string into a list using ',' as the delimiter
+        island_list = island_string.split(',')
+        # Remove any leading or trailing whitespaces from each month
+        island_list = [island.strip() for island in island_list]
+        return island_list
+    else:
+        return []
 
 def filter_geo_data(gdf, years, months, islands):
     filtered_rows = []
@@ -93,6 +106,7 @@ def get_filtered_data():
     islands_get = request.args.getlist('islands')
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
+    split_islands = convert_islands(islands_get)
 
     # Location of the example shape file and project files
     shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
@@ -104,7 +118,7 @@ def get_filtered_data():
     # Call the drop_multipolygons function to remove MultiPolygons
     gdf = drop_multipolygons(gdf)
 
-    gdf = filter_geo_data(gdf, years_get, split_months, islands_get)
+    gdf = filter_geo_data(gdf, years_get, split_months, split_islands)
 
     # Get unique years and islands
     unique_islands = list(gdf['Island'].unique())
@@ -213,7 +227,7 @@ def get_default_data():
 
     # Get unique years and islands
     total_islands = list(gdf_total['Island'].unique())
-    total_years = list(gdf_total['Year'].unique())
+    total_years = sorted(list(gdf_total['Year'].unique()))
     unique_months_str = list(gdf_total['FireMonth'].unique())
 
     response_data = {

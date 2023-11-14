@@ -2,10 +2,66 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
-import { Button, Drawer, AppBar, Toolbar, Typography, Select, MenuItem, IconButton } from '@mui/material';
+import {
+  Button,
+  Drawer,
+  AppBar,
+  Toolbar,
+  Typography,
+  Select,
+  MenuItem,
+  IconButton,
+  Snackbar,
+} from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import DownloadIcon from '@mui/icons-material/Download';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import MenuIcon from '@mui/icons-material/Menu';
+import MuiAlert from '@mui/material/Alert';
+import { Stack } from '@mui/system';
 import './App.css'; // Import the CSS file
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+const fetchData = async (
+  selectedYears,
+  selectedMonths,
+  selectedIsland,
+  setGeojsonData,
+  setUniqueYears,
+  setUniqueMonths,
+  setUniqueIslands,
+  setOpenGood,
+  setOpenSuccess,
+  setOpenError
+) => {
+  try {
+    setOpenGood(true);
+    const response = await axios.get('http://localhost:5000/api/data', {
+      params: {
+        years: selectedYears.join(','),
+        months: selectedMonths.join(','),
+        islands: selectedIsland.join(','),
+      },
+    });
+
+    const { geojsonData, uniqueYears, uniqueIslands, uniqueMonths } =
+      response.data;
+    setGeojsonData(geojsonData);
+    setUniqueYears(uniqueYears);
+    setUniqueMonths(uniqueMonths);
+    setUniqueIslands(uniqueIslands);
+    setOpenGood(false);
+    setOpenSuccess(true);
+  } catch (error) {
+    setOpenError(true);
+    setOpenGood(false);
+    console.error('Error fetching data:', error);
+  }
+};
 
 const App = () => {
   const [uniqueYears, setUniqueYears] = useState([]);
@@ -13,79 +69,89 @@ const App = () => {
   const [uniqueMonths, setUniqueMonths] = useState([]);
   const [selectedYears, setSelectedYears] = useState([]);
   const [selectedMonths, setSelectedMonths] = useState([]);
-  const [selectedIsland, setSelectedIsland] = useState('');
+  const [selectedIsland, setSelectedIsland] = useState([]);
   const [geojsonData, setGeojsonData] = useState(null);
   const [mapHtmlUrl, setMapHtmlUrl] = useState('/filtered_map.html');
   const [yearDropdownVisible, setYearDropdownVisible] = useState(true);
   const [monthDropdownVisible, setMonthDropdownVisible] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [openGood, setOpenGood] = React.useState(false);
+  const [openError, setOpenError] = React.useState(false);
+  const [openSuccess, setOpenSuccess] = React.useState(false);
 
-  // Fetch default data when the component mounts
   useEffect(() => {
-    axios.get('http://localhost:5000/api/list')
-      .then(response => {
+    console.log('Get request sent');
+    axios
+      .get('http://localhost:5000/api/list')
+      .then((response) => {
         const { allYears, allIslands, allMonths } = response.data;
         setUniqueYears(allYears);
         setUniqueIslands(allIslands);
         setUniqueMonths(allMonths);
-        setSelectedIsland(allIslands[0]); // Set default selected island
       })
-      .catch(error => {
-        console.error(error);
+      .catch((error) => {
+        console.error('Error fetching default data:', error);
       });
   }, []);
 
-  // Function to fetch data based on selected years and island
-  const fetchData = () => {
-    axios.get('http://localhost:5000/api/data', {
-      params: {
-        years: selectedYears.join(','), // Send the selected years as a comma-separated string
-        months: selectedMonths.join(','), // Send the selected years as a comma-separated string
-        islands: selectedIsland
-      }
-    })
-    .then(response => {
-      const { geojsonData, uniqueYears, uniqueIslands } = response.data;
-      console.log('GeoJSON Data:', geojsonData); // Log GeoJSON data to the console
-      setGeojsonData(geojsonData);
-      setUniqueYears(uniqueYears);
-      setUniqueMonths(uniqueMonths);
-      setUniqueIslands(uniqueIslands);
-    })
-    .catch(error => {
-      console.error(error);
-    });
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenError(false);
+    setOpenSuccess(false);
   };
 
   const handleDownload = async () => {
     try {
-      // Fetch the HTML content from mapHtmlUrl
       const response = await axios.get(mapHtmlUrl);
-  
-      // Create a Blob containing the HTML content
       const blob = new Blob([response.data], { type: 'text/html' });
-  
-      // Create a download link
+
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = 'HWMO_filtered_map.html';
-  
-      // Append the link to the document and trigger the click event
+
       document.body.appendChild(link);
       link.click();
-  
-      // Remove the link from the document
       document.body.removeChild(link);
     } catch (error) {
       console.error('Error downloading map:', error);
     }
   };
 
+const handleGenerateMap = () => {
+  fetchData(
+    selectedYears,
+    selectedMonths,
+    selectedIsland,
+    setGeojsonData,
+    setUniqueYears,
+    setUniqueMonths,
+    setUniqueIslands,
+    setOpenGood,
+    setOpenSuccess,
+    setOpenError
+  );
+};
+
   return (
     <div>
-      {/* Header */}
-      <AppBar position="static" style={{ backgroundColor: '#1D6069' }}>
+      <AppBar
+        position="fixed"
+        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        style={{ backgroundColor: '#1D6069' }}
+      >
         <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            <MenuIcon />
+          </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
             HWMO Fire Data
           </Typography>
@@ -95,32 +161,33 @@ const App = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Container for Collapse Sidebar Button */}
       <IconButton
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
         sx={{
-          borderTopRightRadius: sidebarCollapsed ? '10px' : '10px',
+          borderTopRightRadius: sidebarCollapsed ? '10px' : '40px',
+          borderBottomRightRadius: sidebarCollapsed ? '10px' : '40px',
+          borderTopLeftRadius: sidebarCollapsed ? '0px' : '0px',
+          borderBottomLeftRadius: sidebarCollapsed ? '0px' : '0px',
           position: 'absolute',
           zIndex: 2,
-          marginTop: '105px',
-          marginLeft: sidebarCollapsed ? '0px' : '300px',
+          marginTop: '0px',
+          marginLeft: sidebarCollapsed ? '0px' : '290px',
           transition: 'margin 0.5s ease-in-out',
-          backgroundColor: '#1D6069', // Set button background color
-          color: '#ffffff', // Set button text color
+          backgroundColor: sidebarCollapsed ? '#1D6069' : 'rgba(0, 183, 219, 1)',
+          color: '#ffffff',
         }}
       >
         {sidebarCollapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
       </IconButton>
-      {/* Map and Sidebar */}
-      <div style={{ display: 'flex', flex: 1 }}>
-        {/* Sidebar */}
-        <Drawer
+
+      <Drawer
           variant="persistent"
           anchor="left"
           open={!sidebarCollapsed}
           PaperProps={{
             sx: {
               width: '300px',
+              marginTop: '64px',
               backgroundColor: 'rgba(0, 183, 219, 1)',
               borderTopRightRadius: '10px',
               borderBottomRightRadius: '10px',
@@ -136,7 +203,7 @@ const App = () => {
               </Typography>
               {yearDropdownVisible && (
                 <div>
-                  {uniqueYears.map(year => (
+                  {uniqueYears.map((year) => (
                     <label key={year} style={{ display: 'block' }}>
                       <input
                         type="checkbox"
@@ -144,7 +211,7 @@ const App = () => {
                         checked={selectedYears.includes(year)}
                         onChange={() => {
                           const newSelectedYears = selectedYears.includes(year)
-                            ? selectedYears.filter(selectedYear => selectedYear !== year)
+                            ? selectedYears.filter((selectedYear) => selectedYear !== year)
                             : [...selectedYears, year];
                           setSelectedYears(newSelectedYears);
                         }}
@@ -163,53 +230,97 @@ const App = () => {
               </Typography>
               {monthDropdownVisible && (
                 <div>
-                  {uniqueMonths.map(month => (
-                    <label key={month} style={{ display: 'block' }}>
-                      <input
-                        type="checkbox"
-                        value={month}
-                        checked={selectedMonths.includes(month)}
-                        onChange={() => {
-                          const newSelectedMonths = selectedMonths.includes(month)
-                            ? selectedMonths.filter(selectedMonth => selectedMonth !== month)
-                            : [...selectedMonths, month];
-                          setSelectedMonths(newSelectedMonths);
-                        }}
-                      />
-                      {month}
-                    </label>
-                  ))}
+                  {uniqueMonths
+                    .filter((month) => month !== null && month !== undefined)
+                    .map((month) => (
+                      <label key={month} style={{ display: 'block' }}>
+                        <input
+                          type="checkbox"
+                          value={month}
+                          checked={selectedMonths.includes(month)}
+                          onChange={() => {
+                            const newSelectedMonths = selectedMonths.includes(month)
+                              ? selectedMonths.filter((selectedMonth) => selectedMonth !== month)
+                              : [...selectedMonths, month];
+                            setSelectedMonths(newSelectedMonths);
+                          }}
+                        />
+                        {month}
+                      </label>
+                    ))}
                 </div>
               )}
             </div>
           </div>
           <Typography variant="h6">Select Island:</Typography>
-          <Select value={selectedIsland} onChange={(e) => setSelectedIsland(e.target.value)}>
-            {uniqueIslands.map(island => (
+          <Select
+            multiple
+            value={selectedIsland}
+            onChange={(e) => setSelectedIsland(e.target.value)}
+          >
+            {uniqueIslands.map((island) => (
               <MenuItem key={island} value={island}>
                 {island}
               </MenuItem>
             ))}
           </Select>
-          <Button onClick={fetchData}>Fetch Data</Button>
-          <Button onClick={handleDownload}>Download Map</Button>
+          <Stack spacing={4}>
+            <Button
+              size="large"
+              color="secondary"
+              component="label"
+              variant="contained"
+              startIcon={<LocalFireDepartmentIcon />}
+              onClick={handleGenerateMap}
+            >
+              Generate Map
+            </Button>
+            <Button
+              size="large"
+              color="success"
+              component="label"
+              variant="contained"
+              startIcon={<DownloadIcon />}
+              onClick={handleDownload}
+            >
+              Download Map
+            </Button>
+          </Stack>
+
+          <Snackbar open={openGood} autoHideDuration={6000} onClose={handleClose}>
+            <Alert severity="info" sx={{ width: '100%' }}>
+              Map Generating
+            </Alert>
+          </Snackbar>
+
+          <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
+            <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+              Map failed to generate
+            </Alert>
+          </Snackbar>
+
+          <Snackbar open={openSuccess} autoHideDuration={6000} onClose={handleClose}>
+            <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+              Map Generated
+            </Alert>
+          </Snackbar>
         </Drawer>
 
-        {/* Map */}
-        <div style={{ 
-          flex: 1, 
+      <div
+        style={{
+          flex: 1,
           paddingLeft: '20px',
           paddingRight: '20px',
           paddingTop: '20px',
           paddingBottom: '20px',
-        
-        }}>
-          {mapHtmlUrl && (
-            <MapContainer style={{ height: '80vh', width: '100%' }}>
-              <iframe title="Folium Map" src={mapHtmlUrl} width="100%" height="100%" frameBorder="0" />
-            </MapContainer>
-          )}
-        </div>
+          marginTop: '80px',
+        }}
+      >
+        {mapHtmlUrl && (
+          <MapContainer style={{ height: '85vh', width: '100%'}}>
+            <iframe title="Folium Map" src={mapHtmlUrl} width="100%" height="100%" frameBorder="0" />
+          </MapContainer>
+        )}
       </div>
     </div>
   );
