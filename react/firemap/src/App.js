@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MapContainer } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
@@ -12,14 +12,19 @@ import {
   MenuItem,
   IconButton,
   Snackbar,
+  Grid,
+  Checkbox,
+  colors,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 import DownloadIcon from '@mui/icons-material/Download';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import MenuIcon from '@mui/icons-material/Menu';
 import MuiAlert from '@mui/material/Alert';
 import { Stack } from '@mui/system';
+import { pink } from '@mui/material/colors';
 import './App.css'; // Import the CSS file
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -72,15 +77,45 @@ const App = () => {
   const [selectedIsland, setSelectedIsland] = useState([]);
   const [geojsonData, setGeojsonData] = useState(null);
   const [mapHtmlUrl, setMapHtmlUrl] = useState('/filtered_map.html');
-  const [yearDropdownVisible, setYearDropdownVisible] = useState(true);
-  const [monthDropdownVisible, setMonthDropdownVisible] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openGood, setOpenGood] = React.useState(false);
   const [openError, setOpenError] = React.useState(false);
   const [openSuccess, setOpenSuccess] = React.useState(false);
 
+  
+  /* set defaults if needed */
+  const yearsList = useMemo(() => {
+    const startYear = 2010;
+    const endYear = 2022;
+    return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
+  }, []);
+
+  const months = useMemo(() => [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ], []);
+
+  const islands = useMemo(() => [
+    'Tinian', 'Saipan', 'Rota', 'Guam', 'Palau', 'Yap',
+  ], []);
+
+
   useEffect(() => {
     console.log('Get request sent');
+
+    const savedSelectedYears = localStorage.getItem('selectedYears');
+    const savedSelectedMonths = localStorage.getItem('selectedMonths');
+    const savedSelectedIsland = localStorage.getItem('selectedIsland');
+
+    if (savedSelectedYears) {
+      setSelectedYears(JSON.parse(savedSelectedYears));
+    }
+    if (savedSelectedMonths) {
+      setSelectedMonths(JSON.parse(savedSelectedMonths));
+    }
+    if (savedSelectedIsland) {
+      setSelectedIsland(JSON.parse(savedSelectedIsland));
+    }
     axios
       .get('http://localhost:5000/api/list')
       .then((response) => {
@@ -94,12 +129,55 @@ const App = () => {
       });
   }, []);
 
+  // Update selected items and save to localStorage when checkboxes are changed
+  const handleCheckboxChange = (value, type) => {
+    let updatedSelection = [];
+    switch (type) {
+      case 'year':
+        updatedSelection = selectedYears.includes(value)
+          ? selectedYears.filter((year) => year !== value)
+          : [...selectedYears, value];
+        setSelectedYears(updatedSelection);
+        localStorage.setItem('selectedYears', JSON.stringify(updatedSelection));
+        break;
+      case 'month':
+        updatedSelection = selectedMonths.includes(value)
+          ? selectedMonths.filter((month) => month !== value)
+          : [...selectedMonths, value];
+        setSelectedMonths(updatedSelection);
+        localStorage.setItem('selectedMonths', JSON.stringify(updatedSelection));
+        break;
+      case 'island':
+        updatedSelection = selectedIsland.includes(value)
+          ? selectedIsland.filter((island) => island !== value)
+          : [...selectedIsland, value];
+        setSelectedIsland(updatedSelection);
+        localStorage.setItem('selectedIsland', JSON.stringify(updatedSelection));
+        break;
+      default:
+        break;
+    }
+  };
+
+  const clearYearSelection = () => {
+    setSelectedYears([]);
+    localStorage.setItem('selectedYears', JSON.stringify([]));
+  };
+
+  const clearMonthSelection = () => {
+    setSelectedMonths([]);
+    localStorage.setItem('selectedMonths', JSON.stringify([]));
+  };
+
+
+
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
     setOpenError(false);
     setOpenSuccess(false);
+    console.log('handleClose');
   };
 
   const handleDownload = async () => {
@@ -117,6 +195,7 @@ const App = () => {
     } catch (error) {
       console.error('Error downloading map:', error);
     }
+      console.log('Setting up download link');
   };
 
 const handleGenerateMap = () => {
@@ -139,7 +218,7 @@ const handleGenerateMap = () => {
       <AppBar
         position="fixed"
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        style={{ backgroundColor: '#1D6069' }}
+        style={{ backgroundColor: '#1D6069'}}
       >
         <Toolbar>
           <IconButton
@@ -161,25 +240,6 @@ const handleGenerateMap = () => {
         </Toolbar>
       </AppBar>
 
-      <IconButton
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        sx={{
-          borderTopRightRadius: sidebarCollapsed ? '10px' : '40px',
-          borderBottomRightRadius: sidebarCollapsed ? '10px' : '40px',
-          borderTopLeftRadius: sidebarCollapsed ? '0px' : '0px',
-          borderBottomLeftRadius: sidebarCollapsed ? '0px' : '0px',
-          position: 'absolute',
-          zIndex: 2,
-          marginTop: '0px',
-          marginLeft: sidebarCollapsed ? '0px' : '290px',
-          transition: 'margin 0.5s ease-in-out',
-          backgroundColor: sidebarCollapsed ? '#1D6069' : 'rgba(0, 183, 219, 1)',
-          color: '#ffffff',
-        }}
-      >
-        {sidebarCollapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
-      </IconButton>
-
       <Drawer
           variant="persistent"
           anchor="left"
@@ -187,84 +247,104 @@ const handleGenerateMap = () => {
           PaperProps={{
             sx: {
               width: '300px',
-              marginTop: '64px',
+              marginTop: '80px',
               backgroundColor: 'rgba(0, 183, 219, 1)',
               borderTopRightRadius: '10px',
               borderBottomRightRadius: '10px',
+              maxHeight: '80vh'
             },
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '20px', paddingRight: '20px', paddingTop: '10px' }}>
             <div>
-              <Typography variant="h6">
-                <Button onClick={() => setYearDropdownVisible(!yearDropdownVisible)}>
-                  Toggle Year Range
-                </Button>
+              <Typography variant="h6" color='#523700'>
+                  Select Year
               </Typography>
-              {yearDropdownVisible && (
+                <IconButton
+                  variant="contained"
+                  onClick={clearYearSelection}
+                  size='small'
+                  sx={{ fontSize: '14px' }} // Adjust the font size here
+                >
+                  <ClearAllIcon/>
+                  clear year
+                </IconButton>
                 <div>
-                  {uniqueYears.map((year) => (
+                  {yearsList.map((year) => (
                     <label key={year} style={{ display: 'block' }}>
                       <input
                         type="checkbox"
                         value={year}
                         checked={selectedYears.includes(year)}
-                        onChange={() => {
-                          const newSelectedYears = selectedYears.includes(year)
-                            ? selectedYears.filter((selectedYear) => selectedYear !== year)
-                            : [...selectedYears, year];
-                          setSelectedYears(newSelectedYears);
-                        }}
+                        onChange={() => handleCheckboxChange(year, 'year')}
                       />
                       {year}
                     </label>
                   ))}
                 </div>
-              )}
             </div>
             <div>
-              <Typography variant="h6">
-                <Button onClick={() => setMonthDropdownVisible(!monthDropdownVisible)}>
-                  Toggle Month Range
-                </Button>
+              <Typography variant="h6" color='#523700'>
+                  Select Month
               </Typography>
-              {monthDropdownVisible && (
-                <div>
-                  {uniqueMonths
-                    .filter((month) => month !== null && month !== undefined)
-                    .map((month) => (
-                      <label key={month} style={{ display: 'block' }}>
-                        <input
-                          type="checkbox"
-                          value={month}
-                          checked={selectedMonths.includes(month)}
-                          onChange={() => {
-                            const newSelectedMonths = selectedMonths.includes(month)
-                              ? selectedMonths.filter((selectedMonth) => selectedMonth !== month)
-                              : [...selectedMonths, month];
-                            setSelectedMonths(newSelectedMonths);
-                          }}
-                        />
-                        {month}
-                      </label>
-                    ))}
-                </div>
-              )}
+              <IconButton
+                  variant="contained"
+                  onClick={clearMonthSelection}
+                  size='small'
+                  sx={{ fontSize: '14px' }} // Adjust the font size here
+                >
+                  <ClearAllIcon/>
+                  clear months
+                </IconButton>
+              <div>
+                {months
+                  .filter((month) => month !== null && month !== undefined)
+                  .map((month) => (
+                    <label key={month} style={{ display: 'block' }}>
+                      <input
+                        type="checkbox"
+                        value={month}
+                        checked={selectedMonths.includes(month)}
+                        onChange={() => handleCheckboxChange(month, 'month')}
+                      />
+                      {month}
+                    </label>
+                  ))}
+              </div>
             </div>
           </div>
-          <Typography variant="h6">Select Island:</Typography>
-          <Select
-            multiple
-            value={selectedIsland}
-            onChange={(e) => setSelectedIsland(e.target.value)}
-          >
-            {uniqueIslands.map((island) => (
-              <MenuItem key={island} value={island}>
-                {island}
-              </MenuItem>
-            ))}
-          </Select>
-          <Stack spacing={4}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px'}}>
+          <Typography variant="h6" color='#523700'>Select Islands</Typography>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {islands
+              .filter((island) => island !== null && island !== undefined)
+              .map((island) => (
+                <div key={island}>
+                  <Checkbox
+                    size="small"
+                    sx={{
+                      color: pink[800],
+                      '&.Mui-checked': {
+                        color: pink[600],
+                      },
+                    }}
+                    value={island}
+                    checked={selectedIsland.includes(island)}
+                    onChange={() => handleCheckboxChange(island, 'island')}
+                  />
+                  <span>{island}</span>
+                </div>
+              ))}
+          </div>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '20vh',
+            justifyContent: 'center', // Center vertically
+            alignItems: 'center', // Center horizontally 
+          }}>
+          <Stack spacing={4} style={{ marginTop: 'auto' }}>
             <Button
               size="large"
               color="secondary"
@@ -272,6 +352,7 @@ const handleGenerateMap = () => {
               variant="contained"
               startIcon={<LocalFireDepartmentIcon />}
               onClick={handleGenerateMap}
+              sx={{ width: '200px' }} // Adjust the width as needed
             >
               Generate Map
             </Button>
@@ -282,12 +363,14 @@ const handleGenerateMap = () => {
               variant="contained"
               startIcon={<DownloadIcon />}
               onClick={handleDownload}
+              sx={{ width: '200px' }} // Adjust the width as needed
             >
               Download Map
             </Button>
           </Stack>
+          </div>
 
-          <Snackbar open={openGood} autoHideDuration={6000} onClose={handleClose}>
+          <Snackbar open={openGood} onClose={handleClose}>
             <Alert severity="info" sx={{ width: '100%' }}>
               Map Generating
             </Alert>
@@ -304,7 +387,7 @@ const handleGenerateMap = () => {
               Map Generated
             </Alert>
           </Snackbar>
-        </Drawer>
+      </Drawer>
 
       <div
         style={{
