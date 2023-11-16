@@ -143,7 +143,11 @@ def get_filtered_data():
     centroid_lat, centroid_lon = original_proj(centroid_utm_x, centroid_utm_y, inverse=True)
 
     # Create a map centered over the first polygon
-    m = folium.Map(location=[centroid_lon, centroid_lat], zoom_start=10)
+    m = folium.Map(
+        location=[centroid_lon, centroid_lat], 
+        zoom_start=10, 
+        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        attr='Esri World Imagery')
 
     # Create a MarkerCluster layer
     marker_cluster = MarkerCluster().add_to(m)
