@@ -203,7 +203,7 @@ def get_filtered_data():
 
     # Print the map projection type
     print("Map Projection Type:", gdf.crs)
-    map_save = 'D:\Documents\GitHub\MapDemo\\react\\firemap\public\\filtered_map.html'
+    map_save = 'react\\firemap\public\\filtered_map.html'
     print(f"saving to {map_save}")
     m.save(map_save)
 
