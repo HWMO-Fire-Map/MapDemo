@@ -4,9 +4,11 @@ import folium
 import random
 import json
 import numpy as np
+import shutil
 from flask import Flask, jsonify, request
 from shapely.geometry import Polygon, MultiPolygon
 from folium.plugins import MarkerCluster
+from shapely.geometry import Point
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -158,7 +160,6 @@ def get_filtered_data():
         centroid_lat, centroid_lon = original_proj(centroid_utm_x, centroid_utm_y, inverse=True)
 
         # Get comments and area information
-        comments = row['Comments']
         acerage = round(row['Acerage'],2)
         fire_year = row['Year']
         month = row['FireMonth']
@@ -189,6 +190,7 @@ def get_filtered_data():
         folium.Marker([centroid_lon, centroid_lat], popup=table_html).add_to(marker_cluster)
 
     # Apply coordinate transformation to the 'geometry' column
+    old_geom = gdf['geometry']
     gdf['geometry'] = gdf['geometry'].apply(lambda geom: transform_coordinates(geom, original_proj))
 
     # Convert GeoDataFrame to GeoJSON
@@ -227,6 +229,15 @@ def get_filtered_data():
     m.save(map_save)
 
     map_data = m.to_json()
+
+    # Create a new column 'centroid' containing Point objects derived from 'geometry'
+    gdf['geometry'] = old_geom
+
+    # Save GeoDataFrame to a shapefile
+    output_shapefile_path = 'output/test_out'
+    gdf.to_file(output_shapefile_path, driver='ESRI Shapefile')
+    shutil.make_archive(output_shapefile_path + 'shapefile_test', 'zip', output_shapefile_path)
+    print(f"saving shape to {output_shapefile_path}")
 
     # Return GeoJSON data, map object, unique years, and unique islands
 
