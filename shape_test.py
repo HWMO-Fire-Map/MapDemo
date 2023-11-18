@@ -159,15 +159,34 @@ def get_filtered_data():
 
         # Get comments and area information
         comments = row['Comments']
-        acerage = row['Acerage']
+        acerage = round(row['Acerage'],2)
+        fire_year = row['Year']
         month = row['FireMonth']
         
         # Create marker popup content with comments and area
-        popup_content = f'Comments: {comments}\n'
-        popup_content += f'Acres: {acerage}\n'
+        popup_content = f'Acres: {acerage}\n'
+        popup_content += f'Year: {fire_year}\n'
         popup_content += f'Month: {month}'
         
-        folium.Marker([centroid_lon, centroid_lat], popup=folium.Popup(popup_content, parse_html=True)).add_to(marker_cluster)
+
+        # Create an HTML table with the given data
+        table_html = f"""
+        <table style="border-collapse: collapse; width: 100px;">
+            <tr>
+                <td style="border: 1px solid black; padding: 8px;">Acres</td>
+                <td style="border: 1px solid black; padding: 8px;">{acerage}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 8px;">Year</td>
+                <td style="border: 1px solid black; padding: 8px;">{fire_year}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 8px;">Month</td>
+                <td style="border: 1px solid black; padding: 8px;">{month}</td>
+            </tr>
+        </table>
+        """
+        folium.Marker([centroid_lon, centroid_lat], popup=table_html).add_to(marker_cluster)
 
     # Apply coordinate transformation to the 'geometry' column
     gdf['geometry'] = gdf['geometry'].apply(lambda geom: transform_coordinates(geom, original_proj))
