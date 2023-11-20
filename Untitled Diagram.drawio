@@ -1,9 +1,94 @@
-<mxfile host="app.diagrams.net" modified="2023-11-20T04:29:03.108Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0" version="22.1.3" etag="_yirzVtVjpw_yn6b5LVb" type="github">
+<mxfile host="app.diagrams.net" modified="2023-11-20T04:49:15.006Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0" etag="I8-fpun612RwoWuQxr9d" version="22.1.3" type="github">
   <diagram name="Page-1" id="jcpMSUe6fjEUut8TEJXF">
-    <mxGraphModel>
+    <mxGraphModel dx="1426" dy="769" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-1" target="zVn8cXbqm9pJRM8GiBte-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-1" value="User logs in" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="10" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-2" target="zVn8cXbqm9pJRM8GiBte-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-2" value="User ID Exists" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="190" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-3" target="zVn8cXbqm9pJRM8GiBte-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-3" value="User ID Doesn&#39;t Exist" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="190" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-4" target="zVn8cXbqm9pJRM8GiBte-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-4" target="zVn8cXbqm9pJRM8GiBte-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-4" value="Check if it is a valid ID in the db" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="280" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-5" target="zVn8cXbqm9pJRM8GiBte-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-5" target="zVn8cXbqm9pJRM8GiBte-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-5" value="Check if the User has a cached user ID" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="130" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-9" target="zVn8cXbqm9pJRM8GiBte-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-9" value="Create a blank entry in the db" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="400" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-12" target="zVn8cXbqm9pJRM8GiBte-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-12" value="Valid" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="400" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-13" target="zVn8cXbqm9pJRM8GiBte-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-13" value="Invalid" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="400" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-18" target="zVn8cXbqm9pJRM8GiBte-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-18" value="saved the db entry id to the browser cache" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="500" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-20" target="zVn8cXbqm9pJRM8GiBte-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-20" value="Display saved map" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="600" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-25" target="zVn8cXbqm9pJRM8GiBte-28">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="530" y="730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-25" value="Display default map" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="600" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="zVn8cXbqm9pJRM8GiBte-28" target="zVn8cXbqm9pJRM8GiBte-33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-28" value="Send generate map request" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="690" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zVn8cXbqm9pJRM8GiBte-33" value="update db with parameters and update access time" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="830" width="120" height="80" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
