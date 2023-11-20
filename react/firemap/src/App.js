@@ -116,10 +116,20 @@ const App = () => {
     if (savedSelectedIsland) {
       setSelectedIsland(JSON.parse(savedSelectedIsland));
     }
-    axios
-      .get('http://localhost:5000/api/list')
-      .then((response) => {
-        const { allYears, allIslands, allMonths } = response.data;
+    Promise.all([
+      axios.get('http://localhost:5000/api/list'),
+      axios.get('http://localhost:5000/api/existing', {
+        params: {
+          param1: "Test String",
+          param2: "Seconds test string",
+          // Add more parameters as needed
+        },
+      })
+    ])
+      .then((responses) => {
+        const [response1, response2] = responses;
+        const { allYears, allIslands, allMonths } = response1.data;
+        const { existing } = response2.data;
         setUniqueYears(allYears);
         setUniqueIslands(allIslands);
         setUniqueMonths(allMonths);

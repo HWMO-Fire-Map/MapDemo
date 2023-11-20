@@ -10,6 +10,7 @@ from shapely.geometry import Polygon, MultiPolygon
 from folium.plugins import MarkerCluster
 from shapely.geometry import Point
 from flask_cors import CORS
+from db_functions import*
 
 app = Flask(__name__)
 CORS(app)
@@ -106,6 +107,9 @@ def get_filtered_data():
     years_get = request.args.getlist('years')
     months_get = request.args.getlist('months')
     islands_get = request.args.getlist('islands')
+    print(years_get)
+    print(months_get)
+    print(islands_get)
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
     split_islands = convert_islands(islands_get)
@@ -210,8 +214,8 @@ def get_filtered_data():
     # Create the legend HTML content
     legend_html = '''
         <div style="position: fixed; 
-                bottom: 20px; right: 20px; width: 60px; height: {len(unique_years) * 20}px; 
-                border:2px solid grey; z-index:9999; font-size:14px;
+                bottom: 20px; right: 20px; width: 80px; height: {len(unique_years) * 20}px; 
+                border:2px solid grey; z-index:9999; font-size:20px;
                 background-color:white; opacity:0.9">
         '''
     for year, color in year_colors.items():
@@ -271,6 +275,22 @@ def get_default_data():
     }
 
     return jsonify(response_data)
+
+@app.route('/api/existing', methods=['GET'])
+def db_check():
+
+    # Retrieve query parameters for 'years' and 'islands'
+    param1 = request.args.getlist('param1')
+    param2 = request.args.getlist('param2')
+
+    print(param1)
+    print(param2)
+
+    response_data = {
+        "It was sent"
+    }
+
+    return "It worked"
 
 
 if __name__ == '__main__':
