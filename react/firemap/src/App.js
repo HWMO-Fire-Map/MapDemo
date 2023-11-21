@@ -35,32 +35,36 @@ const fetchData = async (
   selectedYears,
   selectedMonths,
   selectedIsland,
-  setGeojsonData,
-  setUniqueYears,
-  setUniqueMonths,
-  setUniqueIslands,
   setOpenGood,
+  setMapHtmlUrl,
   setOpenSuccess,
-  setOpenError
+  setOpenError,
+  savedID,
 ) => {
+  savedID = localStorage.getItem('id');
+  setOpenGood(true);
   try {
-    setOpenGood(true);
     const response = await axios.get('http://localhost:5000/api/data', {
       params: {
         years: selectedYears.join(','),
         months: selectedMonths.join(','),
         islands: selectedIsland.join(','),
+        id_num: savedID,
       },
     });
 
-    const { geojsonData, uniqueYears, uniqueIslands, uniqueMonths } =
+    const {mapHtml} =
       response.data;
-    setGeojsonData(geojsonData);
-    setUniqueYears(uniqueYears);
-    setUniqueMonths(uniqueMonths);
-    setUniqueIslands(uniqueIslands);
+    setMapHtmlUrl(mapHtml);
+    console.log(mapHtml);
     setOpenGood(false);
     setOpenSuccess(true);
+    axios.get('http://localhost:5000/api/moveData', {
+      params: {
+        id_num: savedID,
+      },
+    });
+
   } catch (error) {
     setOpenError(true);
     setOpenGood(false);
@@ -81,7 +85,6 @@ const App = () => {
   const [openGood, setOpenGood] = React.useState(false);
   const [openError, setOpenError] = React.useState(false);
   const [openSuccess, setOpenSuccess] = React.useState(false);
-
   
   /* set defaults if needed */
   const yearsList = useMemo(() => {
@@ -106,6 +109,7 @@ const App = () => {
     const savedSelectedYears = localStorage.getItem('selectedYears');
     const savedSelectedMonths = localStorage.getItem('selectedMonths');
     const savedSelectedIsland = localStorage.getItem('selectedIsland');
+    const savedID = localStorage.getItem('id');
 
     if (savedSelectedYears) {
       setSelectedYears(JSON.parse(savedSelectedYears));
@@ -120,19 +124,18 @@ const App = () => {
       axios.get('http://localhost:5000/api/list'),
       axios.get('http://localhost:5000/api/existing', {
         params: {
-          param1: "Test String",
-          param2: "Seconds test string",
-          // Add more parameters as needed
+          param1: savedID,
         },
       })
     ])
       .then((responses) => {
         const [response1, response2] = responses;
         const { allYears, allIslands, allMonths } = response1.data;
-        const { existing } = response2.data;
+        const { id_num } = response2.data;
         setUniqueYears(allYears);
         setUniqueIslands(allIslands);
         setUniqueMonths(allMonths);
+        localStorage.setItem('id', id_num);
       })
       .catch((error) => {
         console.error('Error fetching default data:', error);
@@ -213,11 +216,8 @@ const handleGenerateMap = () => {
     selectedYears,
     selectedMonths,
     selectedIsland,
-    setGeojsonData,
-    setUniqueYears,
-    setUniqueMonths,
-    setUniqueIslands,
     setOpenGood,
+    setMapHtmlUrl,
     setOpenSuccess,
     setOpenError
   );
@@ -380,19 +380,19 @@ const handleGenerateMap = () => {
           </Stack>
           </div>
 
-          <Snackbar open={openGood} onClose={handleClose}>
+          <Snackbar open={openGood}>
             <Alert severity="info" sx={{ width: '100%' }}>
               Map Generating
             </Alert>
           </Snackbar>
 
-          <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
+          <Snackbar open={openError} autoHideDuration={2000} onClose={handleClose}>
             <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
               Map failed to generate
             </Alert>
           </Snackbar>
 
-          <Snackbar open={openSuccess} autoHideDuration={6000} onClose={handleClose}>
+          <Snackbar open={openSuccess} autoHideDuration={2000} onClose={handleClose}>
             <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
               Map Generated
             </Alert>

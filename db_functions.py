@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 
 # Set debug flag
-debug = True
+debug = False
 
 # Connect to a database (this will create a new database if it doesn't exist)
 conn = sqlite3.connect('fire_users.db')
@@ -30,6 +30,7 @@ def check_id_exists(user_id):
 
     if debug:
         if count > 0:
+            update_last_accessed(user_id)
             print(f"ID {user_id} exists in the database.")  # Debug print
 
     return count > 0
@@ -105,7 +106,7 @@ def insert_entry_with_checked_id():
     conn.close()
     return available_id
 
-def update_user_data(name, new_years, new_islands, new_months):
+def update_user_data_name(name, new_years, new_islands, new_months):
     conn = sqlite3.connect('fire_users.db')
     cursor = conn.cursor()
 
@@ -123,6 +124,28 @@ def update_user_data(name, new_years, new_islands, new_months):
     else:
         if debug:
             print(f"No entries found with the name '{name}'. No updates performed.")
+
+    conn.close()
+
+def update_user_data_id(user_id, new_years, new_islands, new_months):
+    conn = sqlite3.connect('fire_users.db')
+    cursor = conn.cursor()
+
+    update_last_accessed(user_id)
+    # Check if the ID exists in the database
+    cursor.execute("SELECT COUNT(*) FROM user_data WHERE id = ?", (user_id,))
+    count = cursor.fetchone()[0]
+
+    if count > 0:
+        # Update years, islands, and months for the provided ID
+        cursor.execute("UPDATE user_data SET years = ?, islands = ?, months = ? WHERE id = ?", (new_years, new_islands, new_months, user_id))
+        conn.commit()
+        
+        if debug:
+            print(f"User data for ID '{user_id}' updated: Years - {new_years}, Islands - {new_islands}, Months - {new_months}")  # Print updated info
+    else:
+        if debug:
+            print(f"No entries found with the ID '{user_id}'. No updates performed.")
 
     conn.close()
 

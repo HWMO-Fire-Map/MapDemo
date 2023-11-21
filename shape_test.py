@@ -1,9 +1,11 @@
+import os
 import geopandas as gpd
 import pyproj
 import folium
 import random
 import json
 import numpy as np
+import zipfile
 import shutil
 from flask import Flask, jsonify, request
 from shapely.geometry import Polygon, MultiPolygon
@@ -11,6 +13,8 @@ from folium.plugins import MarkerCluster
 from shapely.geometry import Point
 from flask_cors import CORS
 from db_functions import*
+
+debug = True
 
 app = Flask(__name__)
 CORS(app)
@@ -23,6 +27,16 @@ def read_prj_file(file_path):
     except Exception as e:
         print(f"Error: {e}")
         return None
+    
+def create_user_folder(folder_path):
+    if not os.path.exists(folder_path):
+        try:
+            os.makedirs(folder_path)
+            print(f"Folder '{folder_path}' created successfully.")
+        except OSError as e:
+            print(f"Error creating folder: {e}")
+    else:
+        print(f"Folder '{folder_path}' already exists.")
     
 def transform_coordinates(geometry, proj):
     if isinstance(geometry, Polygon):
@@ -83,9 +97,10 @@ def filter_geo_data(gdf, years, months, islands):
     if islands == ['']:
         islands = list(gdf['Island'].unique())
 
-    print(years)
-    print(months)
-    print(islands)
+    if debug:
+        print(years)
+        print(months)
+        print(islands)
 
     # Iterate over rows of the GeoDataFrame
     for index, row in gdf.iterrows():
@@ -107,9 +122,17 @@ def get_filtered_data():
     years_get = request.args.getlist('years')
     months_get = request.args.getlist('months')
     islands_get = request.args.getlist('islands')
-    print(years_get)
-    print(months_get)
-    print(islands_get)
+    id_get = request.args.get('id_num')
+
+    if debug:
+        print(years_get)
+        print(months_get)
+        print(islands_get)
+        print(f"---This is the id: {id_get}---")
+
+    id = int(id_get)
+
+    update_user_data_id(id, years_get[0], islands_get[0], months_get[0])
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
     split_islands = convert_islands(islands_get)
@@ -228,7 +251,11 @@ def get_filtered_data():
 
     # Print the map projection type
     print("Map Projection Type:", gdf.crs)
-    map_save = 'react\\firemap\public\\filtered_map.html'
+
+    user_folder = 'output\\user_maps\\'+'user_'+str(id_get)
+
+    create_user_folder(user_folder)
+    map_save = user_folder+ '\\'+ str(id_get)+'_filtered_map.html'
     print(f"saving to {map_save}")
     m.save(map_save)
 
@@ -238,21 +265,33 @@ def get_filtered_data():
     gdf['geometry'] = old_geom
 
     # Save GeoDataFrame to a shapefile
-    output_shapefile_path = 'output/test_out'
-    gdf.to_file(output_shapefile_path, driver='ESRI Shapefile')
-    shutil.make_archive(output_shapefile_path + 'shapefile_test', 'zip', output_shapefile_path)
-    print(f"saving shape to {output_shapefile_path}")
+    temp_shapefile_path = user_folder+'\\shapefiles'
+    os.makedirs(temp_shapefile_path, exist_ok=True)
+    gdf.to_file(temp_shapefile_path, driver='ESRI Shapefile')
+
+    # Create a Zip file containing the shapefiles
+    zipfile_path = os.path.join(user_folder, 'shapefile_test.zip')
+    with zipfile.ZipFile(zipfile_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(temp_shapefile_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.relpath(file_path, temp_shapefile_path))
+    # Clean up the temporary shapefiles directory
+    shutil.rmtree(temp_shapefile_path)
+    print(f"saving shape to {user_folder}")
+
+    map_url = '/user_maps/user_'+str(id_get)+'/'+str(28)+'_filtered_map.html'
+
+    shape_loc = user_folder+'_fireData.zip'
 
     # Return GeoJSON data, map object, unique years, and unique islands
 
     response_data = {
-        "uniqueYears": unique_years_str,
-        "uniqueIslands": unique_islands,
+        "mapHtml": map_url,
+        'shpFiles': shape_loc
     }
 
     return jsonify(response_data)
-
-
 
 @app.route('/api/list', methods=['GET'])
 def get_default_data():
@@ -281,16 +320,49 @@ def db_check():
 
     # Retrieve query parameters for 'years' and 'islands'
     param1 = request.args.getlist('param1')
-    param2 = request.args.getlist('param2')
 
-    print(param1)
-    print(param2)
+    if debug:
+        print(f"This is the passed peram {param1}")
+
+    if not param1:
+        if debug:
+            print("No cached id")
+        id_num = insert_entry_with_checked_id()
+    else:
+        id_num = int(param1[0])
+        if not check_id_exists(id_num):
+            if debug:
+                print("It doesn't exist")
+            id_num = insert_entry_with_checked_id()
+        else:
+            if debug:
+                print("It exists")
 
     response_data = {
-        "It was sent"
+        "id_num": id_num
     }
 
-    return "It worked"
+    return response_data
+
+@app.route('/api/moveData', methods=['GET'])
+def move_maps():
+
+    id_get = request.args.get('id_num')
+    user_folder = f'output/user_maps/user_{id_get}'
+    target_folder = f'react/firemap/public/user_maps/user_{id_get}'
+    target_dir = 'react/firemap/public/user_maps'
+
+    #remove anyhting at the target destination
+    try:
+        shutil.rmtree(target_folder)
+    except:
+        print("got em")
+    # Move the user_folder to the target_folder
+    shutil.copytree(user_folder, target_folder)
+
+    # Remove the original user_folder after moving
+    shutil.rmtree(user_folder)
+    return "Cool"
 
 
 if __name__ == '__main__':
