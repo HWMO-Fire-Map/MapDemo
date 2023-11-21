@@ -39,6 +39,7 @@ const fetchData = async (
   setMapHtmlUrl,
   setOpenSuccess,
   setOpenError,
+  setReloadKey,
   savedID,
 ) => {
   savedID = localStorage.getItem('id');
@@ -52,18 +53,21 @@ const fetchData = async (
         id_num: savedID,
       },
     });
-
     const {mapHtml} =
       response.data;
-    setMapHtmlUrl(mapHtml);
+    localStorage.setItem('user_map', JSON.stringify(mapHtml));
     console.log(mapHtml);
     setOpenGood(false);
     setOpenSuccess(true);
-    axios.get('http://localhost:5000/api/moveData', {
+    await axios.get('http://localhost:5000/api/moveData', {
       params: {
         id_num: savedID,
       },
     });
+    console.log('forcing update');
+    setMapHtmlUrl(mapHtml);
+    setReloadKey(prevKey => prevKey + 1);
+    
 
   } catch (error) {
     setOpenError(true);
@@ -80,11 +84,12 @@ const App = () => {
   const [selectedMonths, setSelectedMonths] = useState([]);
   const [selectedIsland, setSelectedIsland] = useState([]);
   const [geojsonData, setGeojsonData] = useState(null);
-  const [mapHtmlUrl, setMapHtmlUrl] = useState('/filtered_map.html');
+  const [mapHtmlUrl, setMapHtmlUrl] = useState('/default_map.html');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openGood, setOpenGood] = React.useState(false);
   const [openError, setOpenError] = React.useState(false);
   const [openSuccess, setOpenSuccess] = React.useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   
   /* set defaults if needed */
   const yearsList = useMemo(() => {
@@ -109,6 +114,7 @@ const App = () => {
     const savedSelectedYears = localStorage.getItem('selectedYears');
     const savedSelectedMonths = localStorage.getItem('selectedMonths');
     const savedSelectedIsland = localStorage.getItem('selectedIsland');
+    const savedFileLocation = localStorage.getItem('user_map');
     const savedID = localStorage.getItem('id');
 
     if (savedSelectedYears) {
@@ -119,6 +125,9 @@ const App = () => {
     }
     if (savedSelectedIsland) {
       setSelectedIsland(JSON.parse(savedSelectedIsland));
+    }
+    if (savedFileLocation) {
+      setMapHtmlUrl(JSON.parse(savedFileLocation));
     }
     Promise.all([
       axios.get('http://localhost:5000/api/list'),
@@ -219,7 +228,8 @@ const handleGenerateMap = () => {
     setOpenGood,
     setMapHtmlUrl,
     setOpenSuccess,
-    setOpenError
+    setOpenError,
+    setReloadKey,
   );
 };
 
@@ -411,7 +421,12 @@ const handleGenerateMap = () => {
       >
         {mapHtmlUrl && (
           <MapContainer style={{ height: '85vh', width: '100%'}}>
-            <iframe title="Folium Map" src={mapHtmlUrl} width="100%" height="100%" frameBorder="0" />
+            <iframe 
+              title="Folium Map" 
+              src={`${mapHtmlUrl}?key=${reloadKey}`}
+              width="100%" 
+              height="100%" 
+              frameBorder="0" />
           </MapContainer>
         )}
       </div>

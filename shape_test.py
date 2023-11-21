@@ -280,7 +280,7 @@ def get_filtered_data():
     shutil.rmtree(temp_shapefile_path)
     print(f"saving shape to {user_folder}")
 
-    map_url = '/user_maps/user_'+str(id_get)+'/'+str(28)+'_filtered_map.html'
+    map_url = '/user_maps/user_'+str(id_get)+'/'+str(id_get)+'_filtered_map.html'
 
     shape_loc = user_folder+'_fireData.zip'
 
@@ -350,10 +350,12 @@ def move_maps():
     id_get = request.args.get('id_num')
     user_folder = f'output/user_maps/user_{id_get}'
     target_folder = f'react/firemap/public/user_maps/user_{id_get}'
-    target_dir = 'react/firemap/public/user_maps'
 
-    #remove anyhting at the target destination
+    print(id_get)
+
+    #remove anything at the target destination
     try:
+        print("Removing old folders")
         shutil.rmtree(target_folder)
     except:
         print("got em")
