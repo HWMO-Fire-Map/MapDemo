@@ -37,6 +37,17 @@ def create_user_folder(folder_path):
             print(f"Error creating folder: {e}")
     else:
         print(f"Folder '{folder_path}' already exists.")
+
+def sort_months(arr):
+    months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ]
+
+    only_months = sorted([month for month in arr if month in months], key=lambda x: months.index(x))
+    other_items = [item for item in arr if item not in months]
+
+    return only_months + other_items
     
 def transform_coordinates(geometry, proj):
     if isinstance(geometry, Polygon):
@@ -329,10 +340,14 @@ def get_default_data():
     # Read the shapefile into a GeoDataFrame
     gdf_total = gpd.read_file(shapefile_path)
 
+    unique_months = list(gdf_total['FireMonth'].unique())
+    sorted_months = sort_months(unique_months)
+    print(sorted_months)
+
     # Get unique years and islands
     total_islands = list(gdf_total['Island'].unique())
     total_years = sorted(list(gdf_total['Year'].unique()))
-    unique_months_str = list(gdf_total['FireMonth'].unique())
+    unique_months_str = sorted_months
 
     response_data = {
         "allYears": total_years,
