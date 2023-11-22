@@ -291,10 +291,10 @@ const handleGenerateMap = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{color: '#ffffff', paddingRight:'20px'}}>
+          <Typography variant="h6" component="div" sx={{flexGrow: 1, color: '#ffffff', paddingRight:'20px'}}>
             HWMO Fire Data
           </Typography>
-        <Button variant="text">
+        <Button variant="text" sx={{ backgroundColor: '#199171', '&:hover': { backgroundColor: '#147d61' } }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
             Data Download Information
           </Typography>
