@@ -98,9 +98,9 @@ def filter_geo_data(gdf, years, months, islands):
         islands = list(gdf['Island'].unique())
 
     if debug:
-        print(years)
-        print(months)
-        print(islands)
+        print(f"These are the filtered years: {years}")
+        print(f"These are the filtered months: {months}")
+        print(f"These are the filtered islands: {islands}")
 
     # Iterate over rows of the GeoDataFrame
     for index, row in gdf.iterrows():
@@ -123,26 +123,38 @@ def get_filtered_data():
     months_get = request.args.getlist('months')
     islands_get = request.args.getlist('islands')
     id_get = request.args.get('id_num')
+    try:
+        dataSet_raw = request.args.getlist('dataSet')
+    except:
+        print("no dataset")
 
     if debug:
-        print(years_get)
-        print(months_get)
-        print(islands_get)
-        print(f"---This is the id: {id_get}---")
+        print(f"These years sent from the frontend: {years_get}")
+        print(f"These months sent from the frontend: {months_get}")
+        print(f"These islands sent from the frontend: {islands_get}")
+        print(f"---This is the stored id in the frontend: {id_get}---")
+        print(f"---This is the stored dataSet in the frontend: {dataSet_raw}---")
 
     id = int(id_get)
+
+    
+    default_dataSet = '2022_2015_allfires'
+
+    try:
+        dataSet_get = dataSet_raw[0][1:-1]
+        shapefile_path = "ExampleFiles\\"+dataSet_get+"\\"+dataSet_get+".shp"
+        prjfile_path = 'ExampleFiles\\'+str(dataSet_get)+'\\'+str(dataSet_get)+'.prj'
+    except:
+        shapefile_path = 'ExampleFiles\\'+str(default_dataSet)+'\\'+str(default_dataSet)+'.shp'
+        prjfile_path = 'ExampleFiles\\'+str(default_dataSet)+'\\'+str(default_dataSet)+'.prj'
+        
 
     update_user_data_id(id, years_get[0], islands_get[0], months_get[0])
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
     split_islands = convert_islands(islands_get)
 
-    # Location of the example shape file and project files
-    shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
-    prjfile_path = 'ExampleFiles\\2022_2015_allfires.prj'
-
-    # Read the shapefile into a GeoDataFrame
-    gdf = gpd.read_file(shapefile_path)
+    gdf = gpd.read_file(shapefile_path)  
 
     # Call the drop_multipolygons function to remove MultiPolygons
     gdf = drop_multipolygons(gdf)
@@ -288,7 +300,7 @@ def get_filtered_data():
 
     response_data = {
         "mapHtml": map_url,
-        'shpFiles': shape_loc
+        'user_id': shape_loc
     }
 
     return jsonify(response_data)
@@ -296,8 +308,23 @@ def get_filtered_data():
 @app.route('/api/list', methods=['GET'])
 def get_default_data():
 
-    # Location of the example shape file and project files
-    shapefile_path = 'ExampleFiles\\2022_2015_allfires.shp'
+    dataSet_raw = request.args.getlist('dataSet')
+
+    if debug:
+        print(f"----This is the passed dataset {dataSet_raw}----")
+    
+    default_dataSet = '2022_2015_allfires'
+
+    dataPath = 'ExampleFiles'
+    data_sets = [name for name in os.listdir(dataPath) if os.path.isdir(os.path.join(dataPath, name))]
+
+    print(data_sets)
+
+    try:
+        dataSet_get = dataSet_raw[0][1:-1]
+        shapefile_path = "ExampleFiles\\"+dataSet_get+"\\"+dataSet_get+".shp"
+    except:
+        shapefile_path = 'ExampleFiles\\'+str(default_dataSet)+'\\'+str(default_dataSet)+'.shp'
 
     # Read the shapefile into a GeoDataFrame
     gdf_total = gpd.read_file(shapefile_path)
@@ -310,7 +337,8 @@ def get_default_data():
     response_data = {
         "allYears": total_years,
         "allIslands": total_islands,
-        "allMonths": unique_months_str
+        "allMonths": unique_months_str,
+        "allDataSets": data_sets
     }
 
     return jsonify(response_data)
@@ -350,8 +378,6 @@ def move_maps():
     id_get = request.args.get('id_num')
     user_folder = f'output/user_maps/user_{id_get}'
     target_folder = f'react/firemap/public/user_maps/user_{id_get}'
-
-    print(id_get)
 
     #remove anything at the target destination
     try:

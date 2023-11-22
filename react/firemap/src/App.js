@@ -16,6 +16,8 @@ import {
   Checkbox,
   colors,
 } from '@mui/material';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
@@ -41,8 +43,10 @@ const fetchData = async (
   setOpenError,
   setReloadKey,
   savedID,
+  savedDataSet
 ) => {
   savedID = localStorage.getItem('id');
+  savedDataSet = localStorage.getItem('data_set');
   setOpenGood(true);
   try {
     const response = await axios.get('http://localhost:5000/api/data', {
@@ -51,6 +55,7 @@ const fetchData = async (
         months: selectedMonths.join(','),
         islands: selectedIsland.join(','),
         id_num: savedID,
+        dataSet: savedDataSet,
       },
     });
     const {mapHtml} =
@@ -90,6 +95,8 @@ const App = () => {
   const [openError, setOpenError] = React.useState(false);
   const [openSuccess, setOpenSuccess] = React.useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [uniqueDataSets, setUniqueDataSets] = React.useState([]);
+  const [selectedDataSet, setSelectedDataSet] = React.useState([]);
   
   /* set defaults if needed */
   const yearsList = useMemo(() => {
@@ -116,6 +123,7 @@ const App = () => {
     const savedSelectedIsland = localStorage.getItem('selectedIsland');
     const savedFileLocation = localStorage.getItem('user_map');
     const savedID = localStorage.getItem('id');
+    const savedDataSet = localStorage.getItem('data_set');
 
     if (savedSelectedYears) {
       setSelectedYears(JSON.parse(savedSelectedYears));
@@ -129,8 +137,15 @@ const App = () => {
     if (savedFileLocation) {
       setMapHtmlUrl(JSON.parse(savedFileLocation));
     }
+    if (savedDataSet) {
+      setSelectedDataSet(JSON.parse(savedDataSet));
+    }
     Promise.all([
-      axios.get('http://localhost:5000/api/list'),
+      axios.get('http://localhost:5000/api/list', {
+        params: {
+          dataSet: savedDataSet
+        }
+      }),
       axios.get('http://localhost:5000/api/existing', {
         params: {
           param1: savedID,
@@ -139,11 +154,12 @@ const App = () => {
     ])
       .then((responses) => {
         const [response1, response2] = responses;
-        const { allYears, allIslands, allMonths } = response1.data;
+        const { allYears, allIslands, allMonths, allDataSets } = response1.data;
         const { id_num } = response2.data;
         setUniqueYears(allYears);
         setUniqueIslands(allIslands);
         setUniqueMonths(allMonths);
+        setUniqueDataSets(allDataSets);
         localStorage.setItem('id', id_num);
       })
       .catch((error) => {
@@ -178,6 +194,30 @@ const App = () => {
         break;
       default:
         break;
+    }
+  };
+
+  const handleChangeDataSet = async (event) => {
+    const value = event.target.value;
+    setSelectedDataSet(value);
+    localStorage.setItem('data_set', JSON.stringify(value));
+    const savedDataSet = localStorage.getItem('data_set');
+  
+    try {
+      const response = await axios.get('http://localhost:5000/api/list', {
+        params: {
+          dataSet: savedDataSet, // Use the updated value from the event
+        },
+      });
+  
+      const { allYears, allIslands, allMonths } = response.data;
+      setUniqueYears(allYears);
+      setUniqueIslands(allIslands);
+      setUniqueMonths(allMonths);
+
+    } catch (error) {
+      // Handle errors if the request fails
+      console.error('Error fetching data:', error);
     }
   };
 
@@ -254,9 +294,29 @@ const handleGenerateMap = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
             HWMO Fire Data
           </Typography>
-          <Button variant="contained" style={{ backgroundColor: '#fff', color: '#1D6069' }}>
-            Login
-          </Button>
+          <FormControl 
+            fullWidth 
+            sx={{ 
+              color: '#ffffff', 
+              '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { 
+                borderColor: '#ffffff' 
+                } 
+              }}
+            >
+            <InputLabel id="DataSet-select-label" sx={{ color: '#ffffff' }}>DataSet </InputLabel>
+            <Select
+            labelId="DataSet-select-label"
+            value={selectedDataSet}
+            label="DataSet"
+            onChange={handleChangeDataSet}
+            sx={{ color: '#ffffff'}}>
+            {uniqueDataSets.map((item, index) => (
+              <MenuItem key={index} value={item}>
+                {item}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         </Toolbar>
       </AppBar>
 
@@ -290,7 +350,7 @@ const handleGenerateMap = () => {
                   clear year
                 </IconButton>
                 <div>
-                  {yearsList.map((year) => (
+                  {uniqueYears.map((year) => (
                     <label key={year} style={{ display: 'block' }}>
                       <input
                         type="checkbox"
@@ -317,7 +377,7 @@ const handleGenerateMap = () => {
                   clear months
                 </IconButton>
               <div>
-                {months
+                {uniqueMonths
                   .filter((month) => month !== null && month !== undefined)
                   .map((month) => (
                     <label key={month} style={{ display: 'block' }}>
@@ -337,7 +397,7 @@ const handleGenerateMap = () => {
           <Typography variant="h6" color='#523700'>Select Islands</Typography>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            {islands
+            {uniqueIslands
               .filter((island) => island !== null && island !== undefined)
               .map((island) => (
                 <div key={island}>
