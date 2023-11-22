@@ -291,32 +291,14 @@ const handleGenerateMap = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
+          <Typography variant="h6" component="div" sx={{color: '#ffffff', paddingRight:'20px'}}>
             HWMO Fire Data
           </Typography>
-          <FormControl 
-            fullWidth 
-            sx={{ 
-              color: '#ffffff', 
-              '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { 
-                borderColor: '#ffffff' 
-                } 
-              }}
-            >
-            <InputLabel id="DataSet-select-label" sx={{ color: '#ffffff' }}>DataSet </InputLabel>
-            <Select
-            labelId="DataSet-select-label"
-            value={selectedDataSet}
-            label="DataSet"
-            onChange={handleChangeDataSet}
-            sx={{ color: '#ffffff'}}>
-            {uniqueDataSets.map((item, index) => (
-              <MenuItem key={index} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Button variant="text">
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
+            Data Download Information
+          </Typography>
+        </Button>
         </Toolbar>
       </AppBar>
 
@@ -331,7 +313,7 @@ const handleGenerateMap = () => {
               backgroundColor: 'rgba(0, 183, 219, 1)',
               borderTopRightRadius: '10px',
               borderBottomRightRadius: '10px',
-              maxHeight: '80vh'
+              maxHeight: '85vh'
             },
           }}
         >
@@ -396,7 +378,7 @@ const handleGenerateMap = () => {
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px'}}>
           <Typography variant="h6" color='#523700'>Select Islands</Typography>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '20px' }}>
             {uniqueIslands
               .filter((island) => island !== null && island !== undefined)
               .map((island) => (
@@ -417,10 +399,32 @@ const handleGenerateMap = () => {
                 </div>
               ))}
           </div>
+          <FormControl 
+            sx={{
+              color: '#c70049', 
+              '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { 
+                borderColor: '#0208bd' 
+                } 
+              }}
+            >
+            <InputLabel id="DataSet-select-label" sx={{}}>DataSet </InputLabel>
+            <Select
+            labelId="DataSet-select-label"
+            value={selectedDataSet}
+            label="DataSet"
+            onChange={handleChangeDataSet}
+            sx={{}}>
+            {uniqueDataSets.map((item, index) => (
+              <MenuItem key={index} value={item}>
+                {item}
+              </MenuItem>
+            ))}
+            </Select>
+          </FormControl>
           <div style={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            minHeight: '20vh',
+            minHeight: '15vh',
             justifyContent: 'center', // Center vertically
             alignItems: 'center', // Center horizontally 
           }}>
