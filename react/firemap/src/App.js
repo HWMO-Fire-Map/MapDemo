@@ -14,7 +14,10 @@ import {
   Snackbar,
   Grid,
   Checkbox,
+  Tabs,
+  Tab,
   colors,
+  Container
 } from '@mui/material';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
@@ -97,6 +100,7 @@ const App = () => {
   const [reloadKey, setReloadKey] = useState(0);
   const [uniqueDataSets, setUniqueDataSets] = React.useState([]);
   const [selectedDataSet, setSelectedDataSet] = React.useState([]);
+  const [currentTab, setCurrentTab] = useState(0);
   
   /* set defaults if needed */
   const yearsList = useMemo(() => {
@@ -221,6 +225,11 @@ const App = () => {
     }
   };
 
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+    console.log(newValue)
+  };
+
   const clearYearSelection = () => {
     setSelectedYears([]);
     localStorage.setItem('selectedYears', JSON.stringify([]));
@@ -275,11 +284,7 @@ const handleGenerateMap = () => {
 
   return (
     <div>
-      <AppBar
-        position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        style={{ backgroundColor: '#1D6069'}}
-      >
+      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }} style={{ backgroundColor: '#1D6069' }}>
         <Toolbar>
           <IconButton
             size="large"
@@ -291,209 +296,256 @@ const handleGenerateMap = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{flexGrow: 1, color: '#ffffff', paddingRight:'20px'}}>
-            HWMO Fire Data
-          </Typography>
-        <Button variant="text" sx={{ backgroundColor: '#199171', '&:hover': { backgroundColor: '#147d61' } }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#ffffff' }}>
-            Data Download Information
-          </Typography>
-        </Button>
+          <Tabs value={currentTab} onChange={handleTabChange}>
+            <Tab label="HWMO Fire Data" />
+            <Tab label="Data Downloads" />
+          </Tabs>
         </Toolbar>
       </AppBar>
-
-      <Drawer
-          variant="persistent"
-          anchor="left"
-          open={!sidebarCollapsed}
-          PaperProps={{
-            sx: {
-              width: '300px',
-              marginTop: '80px',
-              backgroundColor: 'rgba(0, 183, 219, 1)',
-              borderTopRightRadius: '10px',
-              borderBottomRightRadius: '10px',
-              maxHeight: '85vh'
-            },
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '20px', paddingRight: '20px', paddingTop: '10px' }}>
-            <div>
-              <Typography variant="h6" color='#523700'>
-                  Select Year
-              </Typography>
-                <IconButton
-                  variant="contained"
-                  onClick={clearYearSelection}
-                  size='small'
-                  sx={{ fontSize: '14px' }} // Adjust the font size here
-                >
-                  <ClearAllIcon/>
-                  clear year
-                </IconButton>
-                <div>
-                  {uniqueYears.map((year) => (
-                    <label key={year} style={{ display: 'block' }}>
-                      <input
-                        type="checkbox"
-                        value={year}
-                        checked={selectedYears.includes(year)}
-                        onChange={() => handleCheckboxChange(year, 'year')}
-                      />
-                      {year}
-                    </label>
-                  ))}
-                </div>
-            </div>
-            <div>
-              <Typography variant="h6" color='#523700'>
-                  Select Month
-              </Typography>
-              <IconButton
-                  variant="contained"
-                  onClick={clearMonthSelection}
-                  size='small'
-                  sx={{ fontSize: '14px' }} // Adjust the font size here
-                >
-                  <ClearAllIcon/>
-                  clear months
-                </IconButton>
+      {currentTab === 0 && (
+        <div>
+        <Drawer
+            variant="persistent"
+            anchor="left"
+            open={!sidebarCollapsed}
+            PaperProps={{
+              sx: {
+                width: '300px',
+                marginTop: '80px',
+                backgroundColor: 'rgba(0, 183, 219, 1)',
+                borderTopRightRadius: '10px',
+                borderBottomRightRadius: '10px',
+                maxHeight: '85vh'
+              },
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '20px', paddingRight: '20px', paddingTop: '10px' }}>
               <div>
-                {uniqueMonths
-                  .filter((month) => month !== null && month !== undefined)
-                  .map((month) => (
-                    <label key={month} style={{ display: 'block' }}>
-                      <input
-                        type="checkbox"
-                        value={month}
-                        checked={selectedMonths.includes(month)}
-                        onChange={() => handleCheckboxChange(month, 'month')}
-                      />
-                      {month}
-                    </label>
-                  ))}
+                <Typography variant="h6" color='#523700'>
+                    Select Year
+                </Typography>
+                  <IconButton
+                    variant="contained"
+                    onClick={clearYearSelection}
+                    size='small'
+                    sx={{ fontSize: '14px' }} // Adjust the font size here
+                  >
+                    <ClearAllIcon/>
+                    clear year
+                  </IconButton>
+                  <div>
+                    {uniqueYears.map((year) => (
+                      <label key={year} style={{ display: 'block' }}>
+                        <input
+                          type="checkbox"
+                          value={year}
+                          checked={selectedYears.includes(year)}
+                          onChange={() => handleCheckboxChange(year, 'year')}
+                        />
+                        {year}
+                      </label>
+                    ))}
+                  </div>
+              </div>
+              <div>
+                <Typography variant="h6" color='#523700'>
+                    Select Month
+                </Typography>
+                <IconButton
+                    variant="contained"
+                    onClick={clearMonthSelection}
+                    size='small'
+                    sx={{ fontSize: '14px' }} // Adjust the font size here
+                  >
+                    <ClearAllIcon/>
+                    clear months
+                  </IconButton>
+                <div>
+                  {uniqueMonths
+                    .filter((month) => month !== null && month !== undefined)
+                    .map((month) => (
+                      <label key={month} style={{ display: 'block' }}>
+                        <input
+                          type="checkbox"
+                          value={month}
+                          checked={selectedMonths.includes(month)}
+                          onChange={() => handleCheckboxChange(month, 'month')}
+                        />
+                        {month}
+                      </label>
+                    ))}
+                </div>
               </div>
             </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px'}}>
-          <Typography variant="h6" color='#523700'>Select Islands</Typography>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '20px' }}>
-            {uniqueIslands
-              .filter((island) => island !== null && island !== undefined)
-              .map((island) => (
-                <div key={island}>
-                  <Checkbox
-                    size="small"
-                    sx={{
-                      color: pink[800],
-                      '&.Mui-checked': {
-                        color: pink[600],
-                      },
-                    }}
-                    value={island}
-                    checked={selectedIsland.includes(island)}
-                    onChange={() => handleCheckboxChange(island, 'island')}
-                  />
-                  <span>{island}</span>
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px'}}>
+            <Typography variant="h6" color='#523700'>Select Islands</Typography>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '20px' }}>
+              {uniqueIslands
+                .filter((island) => island !== null && island !== undefined)
+                .map((island) => (
+                  <div key={island}>
+                    <Checkbox
+                      size="small"
+                      sx={{
+                        color: pink[800],
+                        '&.Mui-checked': {
+                          color: pink[600],
+                        },
+                      }}
+                      value={island}
+                      checked={selectedIsland.includes(island)}
+                      onChange={() => handleCheckboxChange(island, 'island')}
+                    />
+                    <span>{island}</span>
+                  </div>
+                ))}
+            </div>
+            <FormControl 
+              sx={{
+                color: '#c70049',
+                paddingLeft: '10px',
+                paddingRight: '10px', 
+                '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { 
+                  borderColor: '#0208bd' 
+                  } 
+                }}
+              >
+              <InputLabel id="DataSet-select-label" sx={{paddingLeft: '10px'}}>DataSet </InputLabel>
+              <Select
+              labelId="DataSet-select-label"
+              value={selectedDataSet}
+              label="DataSet"
+              onChange={handleChangeDataSet}
+              sx={{}}>
+              {uniqueDataSets.map((item, index) => (
+                <MenuItem key={index} value={item}>
+                  {item}
+                </MenuItem>
               ))}
-          </div>
-          <FormControl 
-            sx={{
-              color: '#c70049', 
-              '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { 
-                borderColor: '#0208bd' 
-                } 
-              }}
-            >
-            <InputLabel id="DataSet-select-label" sx={{}}>DataSet </InputLabel>
-            <Select
-            labelId="DataSet-select-label"
-            value={selectedDataSet}
-            label="DataSet"
-            onChange={handleChangeDataSet}
-            sx={{}}>
-            {uniqueDataSets.map((item, index) => (
-              <MenuItem key={index} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-            </Select>
-          </FormControl>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            minHeight: '15vh',
-            justifyContent: 'center', // Center vertically
-            alignItems: 'center', // Center horizontally 
-          }}>
-          <Stack spacing={4} style={{ marginTop: 'auto' }}>
-            <Button
-              size="large"
-              color="secondary"
-              component="label"
-              variant="contained"
-              startIcon={<LocalFireDepartmentIcon />}
-              onClick={handleGenerateMap}
-              sx={{ width: '200px' }} // Adjust the width as needed
-            >
-              Generate Map
-            </Button>
-            <Button
-              size="large"
-              color="success"
-              component="label"
-              variant="contained"
-              startIcon={<DownloadIcon />}
-              onClick={handleDownload}
-              sx={{ width: '200px' }} // Adjust the width as needed
-            >
-              Download Map
-            </Button>
-          </Stack>
-          </div>
+              </Select>
+            </FormControl>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              minHeight: '15vh',
+              justifyContent: 'center', // Center vertically
+              alignItems: 'center', // Center horizontally 
+            }}>
+            <Stack spacing={4} style={{ marginTop: 'auto' }}>
+              <Button
+                size="large"
+                color="secondary"
+                component="label"
+                variant="contained"
+                startIcon={<LocalFireDepartmentIcon />}
+                onClick={handleGenerateMap}
+                sx={{ width: '200px' }} // Adjust the width as needed
+              >
+                Generate Map
+              </Button>
+              <Button
+                size="large"
+                color="success"
+                component="label"
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={handleDownload}
+                sx={{ width: '200px' }} // Adjust the width as needed
+              >
+                Download Map
+              </Button>
+            </Stack>
+            </div>
 
-          <Snackbar open={openGood}>
-            <Alert severity="info" sx={{ width: '100%' }}>
-              Map Generating
-            </Alert>
-          </Snackbar>
+            <Snackbar open={openGood}>
+              <Alert severity="info" sx={{ width: '100%' }}>
+                Map Generating
+              </Alert>
+            </Snackbar>
 
-          <Snackbar open={openError} autoHideDuration={2000} onClose={handleClose}>
-            <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-              Map failed to generate
-            </Alert>
-          </Snackbar>
+            <Snackbar open={openError} autoHideDuration={2000} onClose={handleClose}>
+              <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                Map failed to generate
+              </Alert>
+            </Snackbar>
 
-          <Snackbar open={openSuccess} autoHideDuration={2000} onClose={handleClose}>
-            <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-              Map Generated
-            </Alert>
-          </Snackbar>
-      </Drawer>
+            <Snackbar open={openSuccess} autoHideDuration={2000} onClose={handleClose}>
+              <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+                Map Generated
+              </Alert>
+            </Snackbar>
+        </Drawer>
 
-      <div
-        style={{
-          flex: 1,
-          paddingLeft: '20px',
-          paddingRight: '20px',
-          paddingTop: '20px',
-          paddingBottom: '20px',
-          marginTop: '80px',
-        }}
-      >
-        {mapHtmlUrl && (
-          <MapContainer style={{ height: '85vh', width: '100%'}}>
-            <iframe 
-              title="Folium Map" 
-              src={`${mapHtmlUrl}?key=${reloadKey}`}
-              width="100%" 
-              height="100%" 
-              frameBorder="0" />
-          </MapContainer>
-        )}
+        <div
+          style={{
+            flex: 1,
+            paddingLeft: '20px',
+            paddingRight: '20px',
+            paddingTop: '20px',
+            paddingBottom: '20px',
+            marginTop: '80px',
+          }}
+        >
+          {mapHtmlUrl && (
+            <MapContainer style={{ height: '85vh', width: '100%'}}>
+              <iframe 
+                title="Folium Map" 
+                src={`${mapHtmlUrl}?key=${reloadKey}`}
+                width="100%" 
+                height="100%" 
+                frameBorder="0" />
+            </MapContainer>
+          )}
+        </div>
+        </div>
+      )}
+        {currentTab === 1 && (
+        <Container maxWidth="md">
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', paddingTop: '40px', background: '#68b6ed', height: '100vh'}}>
+          <Container maxWidth="md">
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="h3" component="div" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#02002e'}}>
+                HWMO Fire Data
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body1" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#02002e'}}>
+                Information on Western Micronesia: which include the islands of Guam, Rota, Saipan, Tinian, and Yap<br />
+                <br />
+                Abstract:<br />
+                This data publication contains vector polygon spatial data showing burn areas from wildfires
+                in 2016-2021 on Guam, Yap State (Federated States of Micronesia-FSM), and the Commonwealth of
+                Northern Marianas Islands-CNMI (Saipan, Tinian, and Rota Islands). Burn areas from wildfire in
+                2015 are also provided for Guam.<br />
+              </Typography>
+              <Typography variant="h6" sx={{ display: 'flex', color: '#02002e'}}>
+                <li>
+                  <a href="https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012">
+                    https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012
+                  </a>
+                </li>
+              </Typography>
+              <Typography variant="body1" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#02002e'}}>
+              <br />Information on Babeldaob Island wildfires<br />
+              <br />
+              Abstract:<br />
+              This data publication contains wildfire locations as well as areas of repeated wildfires on Babeldaob Island, Palau from 2012 to 2021. These data were digitized from a variety of sources: handheld global positioning system (GPS) fire perimeter mapping, aerial photo fire perimeter mapping, and satellite image fire perimeter mapping. In addition to 1) wildfire locations and 2) the areas of repeated wildfires, also included for Babeldaob Island are: 3) streams composed from topographic maps, 4) roads (obtained from Palau Automated Land and Resource Information Service (PALARIS) and updated with 2015 imagery), 5) locations of terrestrial protected areas, 6) mangrove vegetation around the island, 7) Babeldaob Island state boundaries, and 8) Babeldaob coastline.
+              </Typography>
+              <Typography variant="h6" sx={{ display: 'flex', color: '#02002e'}}>
+                <li>
+                  <a href="https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039">
+                  https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039
+                  </a>
+                </li>
+              </Typography>
+            </Grid>
+          </Grid>
+          </Container>
       </div>
+      </Container>
+      )}
     </div>
   );
 };
