@@ -296,9 +296,14 @@ const handleGenerateMap = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Tabs value={currentTab} onChange={handleTabChange}>
-            <Tab label="HWMO Fire Data" />
-            <Tab label="Data Downloads" />
+          <Tabs 
+            value={currentTab} 
+            onChange={handleTabChange}
+            indicatorColor="secondary"
+            textColor="inherit"
+          >
+            <Tab label="HWMO Fire Data" sx={{ color: '#fca41e' }}/>
+            <Tab label="Data Downloads" sx={{ color: '#00c735' }}/>
           </Tabs>
         </Toolbar>
       </AppBar>
@@ -502,7 +507,7 @@ const handleGenerateMap = () => {
       )}
         {currentTab === 1 && (
         <Container maxWidth="md">
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', paddingTop: '40px', background: '#68b6ed', height: '100vh'}}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '80px', paddingTop: '20px', background: '#68b6ed', height: '85vh'}}>
           <Container maxWidth="md">
           <Grid container spacing={2}>
             <Grid item xs={12}>
