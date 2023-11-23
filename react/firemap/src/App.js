@@ -251,8 +251,8 @@ const App = () => {
     console.log('handleClose');
   };
 
-  const handleDownload = async () => {
-    try {
+  const handleHTMLDownload = async () => {
+    try {      
       const response = await axios.get(mapHtmlUrl);
       const blob = new Blob([response.data], { type: 'text/html' });
 
@@ -267,6 +267,29 @@ const App = () => {
       console.error('Error downloading map:', error);
     }
       console.log('Setting up download link');
+  };
+
+  const handleSHPDownload = async () => {
+    try {
+      const savedID = localStorage.getItem('id').toString();
+      const shpUrl = '/user_maps/user_' + savedID + '/shapefile_test.zip';
+  
+      const response = await axios.get(shpUrl, {
+        responseType: 'arraybuffer', // Ensure binary data is received
+      });
+  
+      const blob = new Blob([response.data], { type: 'application/zip' }); // Specify the correct MIME type
+  
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'HWMO_Map_Data.zip';
+  
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading map:', error);
+    }
   };
 
 const handleGenerateMap = () => {
@@ -433,11 +456,11 @@ const handleGenerateMap = () => {
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column', 
-              minHeight: '15vh',
               justifyContent: 'center', // Center vertically
-              alignItems: 'center', // Center horizontally 
+              alignItems: 'center', // Center horizontally
+              marginTop: '20px'
             }}>
-            <Stack spacing={4} style={{ marginTop: 'auto' }}>
+            <Stack spacing={4} style={{ alignItems: 'center'}}>
               <Button
                 size="large"
                 color="secondary"
@@ -455,10 +478,24 @@ const handleGenerateMap = () => {
                 component="label"
                 variant="contained"
                 startIcon={<DownloadIcon />}
-                onClick={handleDownload}
-                sx={{ width: '200px' }} // Adjust the width as needed
+                onClick={handleHTMLDownload}
+                fullWidth
+                sx={{ fontSize: '12px' }}
               >
-                Download Map
+                Download Map (HTML)
+              </Button>
+
+              <Button
+                size="large"
+                color="success"
+                component="label"
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={handleSHPDownload}
+                fullWidth
+                sx={{ fontSize: '12px' }}
+              >
+                Download Map (SHP)
               </Button>
             </Stack>
             </div>
