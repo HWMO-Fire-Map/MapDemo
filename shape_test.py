@@ -181,7 +181,7 @@ def get_filtered_data():
     gdf['Year'] = gdf['Year'].astype(int)
 
     # Define a color dictionary for each unique year
-    unique_years = gdf['Year'].unique()
+    unique_years = sorted(list(gdf['Year'].unique()))
     year_colors = {year: "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for year in unique_years}
 
     # Define the original projection using the provided WKT format
