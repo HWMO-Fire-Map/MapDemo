@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { MapContainer } from 'react-leaflet';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -16,13 +15,10 @@ import {
   Checkbox,
   Tabs,
   Tab,
-  colors,
   Container
 } from '@mui/material';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import DownloadIcon from '@mui/icons-material/Download';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
@@ -42,11 +38,11 @@ const fetchData = async (
   selectedIsland,
   setOpenGood,
   setMapHtmlUrl,
+  setGeojsonData,
   setOpenSuccess,
   setOpenError,
-  setReloadKey,
   savedID,
-  savedDataSet
+  savedDataSet,
 ) => {
   savedID = localStorage.getItem('id');
   savedDataSet = localStorage.getItem('data_set');
@@ -61,12 +57,13 @@ const fetchData = async (
         dataSet: savedDataSet,
       },
     });
-    const {mapHtml} =
+    const {mapHtml, map_data} =
       response.data;
     localStorage.setItem('user_map', JSON.stringify(mapHtml));
     console.log(mapHtml);
     setOpenGood(false);
     setOpenSuccess(true);
+    setGeojsonData(map_data);
     await axios.get('http://localhost:5000/api/moveData', {
       params: {
         id_num: savedID,
@@ -74,7 +71,6 @@ const fetchData = async (
     });
     console.log('forcing update');
     setMapHtmlUrl(mapHtml);
-    setReloadKey(prevKey => prevKey + 1);
     
 
   } catch (error) {
@@ -92,7 +88,7 @@ const App = () => {
   const [selectedMonths, setSelectedMonths] = useState([]);
   const [selectedIsland, setSelectedIsland] = useState([]);
   const [geojsonData, setGeojsonData] = useState(null);
-  const [mapHtmlUrl, setMapHtmlUrl] = useState('/default_map.html');
+  const [mapHtmlUrl, setMapHtmlUrl] = useState('/39_filtered_map.html');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openGood, setOpenGood] = React.useState(false);
   const [openError, setOpenError] = React.useState(false);
@@ -101,23 +97,6 @@ const App = () => {
   const [uniqueDataSets, setUniqueDataSets] = React.useState([]);
   const [selectedDataSet, setSelectedDataSet] = React.useState([]);
   const [currentTab, setCurrentTab] = useState(0);
-  
-  /* set defaults if needed */
-  const yearsList = useMemo(() => {
-    const startYear = 2010;
-    const endYear = 2022;
-    return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
-  }, []);
-
-  const months = useMemo(() => [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ], []);
-
-  const islands = useMemo(() => [
-    'Tinian', 'Saipan', 'Rota', 'Guam', 'Palau', 'Yap',
-  ], []);
-
 
   useEffect(() => {
     console.log('Get request sent');
@@ -144,6 +123,7 @@ const App = () => {
     if (savedDataSet) {
       setSelectedDataSet(JSON.parse(savedDataSet));
     }
+
     Promise.all([
       axios.get('http://localhost:5000/api/list', {
         params: {
@@ -169,6 +149,10 @@ const App = () => {
       .catch((error) => {
         console.error('Error fetching default data:', error);
       });
+
+    if (geojsonData == null){
+        handleGenerateMap()
+    }
   }, []);
 
   // Update selected items and save to localStorage when checkboxes are changed
@@ -240,8 +224,6 @@ const App = () => {
     localStorage.setItem('selectedMonths', JSON.stringify([]));
   };
 
-
-
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -299,9 +281,9 @@ const handleGenerateMap = () => {
     selectedIsland,
     setOpenGood,
     setMapHtmlUrl,
+    setGeojsonData,
     setOpenSuccess,
     setOpenError,
-    setReloadKey,
   );
 };
 
@@ -518,7 +500,7 @@ const handleGenerateMap = () => {
               </Alert>
             </Snackbar>
         </Drawer>
-
+            {/* 
         <div
           style={{
             flex: 1,
@@ -539,6 +521,26 @@ const handleGenerateMap = () => {
                 frameBorder="0" />
             </MapContainer>
           )}
+        </div>
+        */}
+        <div
+          style={{
+            flex: 1,
+            paddingLeft: '20px',
+            paddingRight: '20px',
+            paddingTop: '20px',
+            paddingBottom: '20px',
+            marginTop: '80px',
+          }}
+        >
+          <iframe style={{ height: '85vh', width: '100%', display: 'block', margin: '0 auto'}}
+            title="Folium Map"
+            width="100%"
+            height="100%"
+            srcDoc={geojsonData}
+            frameBorder="0"
+            scrolling="no"
+      ></iframe>
         </div>
         </div>
       )}

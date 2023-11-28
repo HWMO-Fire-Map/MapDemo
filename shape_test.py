@@ -139,6 +139,11 @@ def get_filtered_data():
     except:
         print("no dataset")
 
+    default_dataSet = '2022_2015_allfires'
+
+    if dataSet_raw ==[]:
+        dataSet_raw = [default_dataSet]
+
     if debug:
         print(f"These years sent from the frontend: {years_get}")
         print(f"These months sent from the frontend: {months_get}")
@@ -147,9 +152,6 @@ def get_filtered_data():
         print(f"---This is the stored dataSet in the frontend: {dataSet_raw}---")
 
     id = int(id_get)
-
-    
-    default_dataSet = '2022_2015_allfires'
 
     try:
         dataSet_get = dataSet_raw[0][1:-1]
@@ -199,7 +201,8 @@ def get_filtered_data():
         location=[centroid_lon, centroid_lat], 
         zoom_start=10, 
         tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        attr='Esri World Imagery')
+        attr='Esri World Imagery',
+        )
 
     # Create a MarkerCluster layer
     marker_cluster = MarkerCluster().add_to(m)
@@ -260,12 +263,17 @@ def get_filtered_data():
     # Create the legend HTML content
     legend_html = '''
         <div style="position: fixed; 
-                bottom: 20px; right: 20px; width: 80px; height: {len(unique_years) * 20}px; 
-                border:2px solid grey; z-index:9999; font-size:20px;
-                background-color:white; opacity:0.9">
-        '''
+                    top: 20px; right: 20px; width: 120px; 
+                    border: 2px solid grey; z-index: 9999; 
+                    background-color: white; opacity: 0.9; padding: 10px;
+                    font-size: 20px;">
+    '''
+
     for year, color in year_colors.items():
-        legend_html += '<i style="background:{};width:10px;height:10px;float:left;margin-right:5px;"></i> {}<br>'.format(color, year)
+        legend_html += '<div style="display: flex; align-items: center;">'
+        legend_html += f'<div style="background:{color};width:10px;height:10px;margin-right:5px;"></div>'
+        legend_html += f'<span>{year}</span>'
+        legend_html += '</div>'
 
     legend_html += '</div>'
 
@@ -280,9 +288,10 @@ def get_filtered_data():
     create_user_folder(user_folder)
     map_save = user_folder+ '\\'+ str(id_get)+'_filtered_map.html'
     print(f"saving to {map_save}")
+
     m.save(map_save)
 
-    map_data = m.to_json()
+    map_data = m._repr_html_()
 
     # Create a new column 'centroid' containing Point objects derived from 'geometry'
     gdf['geometry'] = old_geom
@@ -311,7 +320,8 @@ def get_filtered_data():
 
     response_data = {
         "mapHtml": map_url,
-        'user_id': shape_loc
+        'user_id': shape_loc,
+        'map_data': map_data
     }
 
     return jsonify(response_data)

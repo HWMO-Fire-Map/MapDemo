@@ -1,25 +1,36 @@
 import React from 'react';
-import { MapContainer } from 'react-leaflet';
 
-const CustomMapContainer = ({ mapHtmlUrl }) => {
+const FoliumMapTest = () => {
   return (
-    <div
-      style={{
-        flex: 1,
-        paddingLeft: '20px',
-        paddingRight: '20px',
-        paddingTop: '20px',
-        paddingBottom: '20px',
-        marginTop: '80px',
-      }}
-    >
-      {mapHtmlUrl && (
-        <MapContainer style={{ height: '85vh', width: '100%' }}>
-          <iframe title="Folium Map" src={mapHtmlUrl} width="100%" height="100%" frameBorder="0" />
-        </MapContainer>
-      )}
+    <div>
+      <iframe
+        title="Folium Map"
+        width="100%"
+        height="600"
+        srcDoc={`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+              <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+              <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+            </head>
+            <body>
+              <div class="folium-map" id="map"></div>
+              <script>
+                var map = L.map('map').setView([51.505, -0.09], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                  attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+              </script>
+            </body>
+          </html>
+        `}
+        frameBorder="0"
+        scrolling="no"
+      ></iframe>
     </div>
   );
 };
 
-export default CustomMapContainer;
+export default FoliumMapTest;
