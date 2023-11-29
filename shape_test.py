@@ -16,7 +16,7 @@ from shapely.geometry import Point
 from flask_cors import CORS
 from db_functions import*
 
-debug = True
+debug = False
 
 app = Flask(__name__)
 CORS(app)
@@ -34,9 +34,11 @@ def create_user_folder(folder_path):
     if not os.path.exists(folder_path):
         try:
             os.makedirs(folder_path)
-            print(f"Folder '{folder_path}' created successfully.")
+            if debug:
+                print(f"Folder '{folder_path}' created successfully.")
         except OSError as e:
-            print(f"Error creating folder: {e}")
+            if debug:
+                print(f"Error creating folder: {e}")
     else:
         print(f"Folder '{folder_path}' already exists.")
 
@@ -291,11 +293,12 @@ def get_filtered_data():
     shutil.rmtree(user_folder)
 
     update_user_data_id(id, years_get[0], islands_get[0], months_get[0], map_data, dataSet_get)
-    print('-----------------------------------------------------------------')
-    print(id)
-    temp_values = get_values_by_id(id)
-    print(temp_values)
-    print('-----------------------------------------------------------------')
+    if debug:
+        print('-----------------------------------------------------------------')
+        print(id)
+        temp_values = get_values_by_id(id)
+        print(temp_values)
+        print('-----------------------------------------------------------------')
 
     map_url = '/user_maps/user_'+str(id_get)+'/'+str(id_get)+'_filtered_map.html'
 
@@ -321,7 +324,8 @@ def get_default_data():
     dataPath = 'ExampleFiles'
     data_sets = [name for name in os.listdir(dataPath) if os.path.isdir(os.path.join(dataPath, name))]
 
-    print(data_sets)
+    if debug:
+        print(data_sets)
 
     try:
         dataSet_get = dataSet_raw[0][1:-1]
@@ -334,7 +338,8 @@ def get_default_data():
 
     unique_months = list(gdf_total['FireMonth'].unique())
     sorted_months = sort_months(unique_months)
-    print(sorted_months)
+    if debug:
+        print(sorted_months)
 
     # Get unique years and islands
     total_islands = list(gdf_total['Island'].unique())
@@ -379,11 +384,13 @@ def db_check():
             if debug:
                 print("It exists")
             if not check_map_html_exists(id_num):
-                print("-+-+-+-no default map data found-+-+-+-")
+                if debug:
+                    print("-+-+-+-no default map data found-+-+-+-")
                 with open(default_map, "r") as file:
                     map_data = file.read()
             else:
-                print("-+-+-+-Default map data found-+-+-+-")
+                if debug:
+                    print("-+-+-+-Default map data found-+-+-+-")
                 map_data = get_map_html(id_num)
 
     response_data = {
@@ -421,8 +428,6 @@ def generate_shape_zip():
     gdf = filter_geo_data(gdf, years, months, islands)
 
     user_folder = 'output\\user_maps\\'+'user_'+str(id_get)
-
-    print(user_folder)
 
     # Save GeoDataFrame to a shapefile
     temp_shapefile_path = user_folder+'\\shapefiles'

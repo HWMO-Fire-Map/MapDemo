@@ -243,9 +243,10 @@ def get_values_by_id(user_id):
 
     conn.close()
 
-    if row:
-        print(f"Values for ID {user_id}: {row}")  # Debug print
-    else:
-        print(f"No values found for ID {user_id}")  # Debug print
+    if debug:
+        if row:
+            print(f"Values for ID {user_id}: {row}")  # Debug print
+        else:
+            print(f"No values found for ID {user_id}")  # Debug print
 
     return row if row else None
