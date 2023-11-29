@@ -15,6 +15,8 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS user_data (
                     years Text,
                     islands Text,
                     months Text,
+                    map_html TEXT,
+                    data_set Text,
                     last_accessed DATETIME DEFAULT CURRENT_TIMESTAMP
                 )''')
 
@@ -34,6 +36,52 @@ def check_id_exists(user_id):
             print(f"ID {user_id} exists in the database.")  # Debug print
 
     return count > 0
+
+def check_map_html_exists(user_id):
+    conn = sqlite3.connect('fire_users.db')
+    cursor = conn.cursor()
+    # SQL query to select map_html for a specific id
+    cursor.execute("SELECT map_html FROM user_data WHERE id = ?", (user_id,))
+    result = cursor.fetchone()
+
+    if result is not None and result[0] is not None and result[0].strip() != '':
+        # map_html exists and is not empty
+        conn.close()
+        return True
+    else:
+        # map_html does not exist or is empty
+        conn.close()
+        return False
+    
+def get_map_html(user_id):
+    conn = sqlite3.connect('fire_users.db')
+    cursor = conn.cursor()
+    # SQL query to select map_html for a specific id
+    cursor.execute("SELECT map_html FROM user_data WHERE id = ?", (user_id,))
+    result = cursor.fetchone()
+
+    if result is not None and result[0] is not None:
+        conn.close()
+        return result[0]  # Return map_html content if it exists
+    else:
+        conn.close()
+        return None
+    
+def update_map_html(user_id, new_map_html):
+    conn = sqlite3.connect('fire_users.db')
+    cursor = conn.cursor()
+    # SQL query to update map_html for a specific id
+    cursor.execute("UPDATE user_data SET map_html = ? WHERE id = ?", (new_map_html, user_id))
+    conn.commit()
+    conn.close()
+
+def update_data_set(user_id, data_set):
+    conn = sqlite3.connect('fire_users.db')
+    cursor = conn.cursor()
+    # SQL query to update map_html for a specific id
+    cursor.execute("UPDATE user_data SET data_set = ? WHERE id = ?", (data_set, user_id))
+    conn.commit()
+    conn.close()
 
 def update_last_accessed(user_id):
     conn = sqlite3.connect('fire_users.db')
@@ -65,21 +113,18 @@ def check_if_name_exists(name):
 
     return count > 0
 
-def insert_user_data(name, years, islands, months, last_accesed):
+def insert_user_data(name, years, islands, months, map_data, data_set, last_accesed):
     conn = sqlite3.connect('fire_users.db')
     cursor = conn.cursor()
     
     # Check if the name already exists
     if not check_if_name_exists(name):
-        cursor.execute("INSERT INTO user_data (name, years, islands, months, last_accessed) VALUES (?, ?, ?, ?, ?)", (name, years, islands, months, last_accesed))
+        cursor.execute("INSERT INTO user_data (name, years, islands, months, data_set, map_html, last_accessed) VALUES (?, ?, ?, ?, ?, ?, ?)", (name, years, islands, months, map_data, data_set, last_accesed))
         conn.commit()
-        
-        if debug:
-            print(f"Inserted data for {name}")  # Debug print
+        print(f"Inserted data for {name}")
     else:
-        if debug:
-            print(f"Name '{name}' already exists in the database. Skipping insertion.")
-
+        print(f"Name '{name}' already exists in the database. Skipping insertion.")
+    
     conn.close()
 
 def insert_entry_with_checked_id():
@@ -127,22 +172,24 @@ def update_user_data_name(name, new_years, new_islands, new_months):
 
     conn.close()
 
-def update_user_data_id(user_id, new_years, new_islands, new_months):
+def update_user_data_id(user_id, new_years, new_islands, new_months, map_data, new_data_set):
     conn = sqlite3.connect('fire_users.db')
     cursor = conn.cursor()
 
     update_last_accessed(user_id)
+    update_map_html(user_id, map_data)
+    update_data_set(user_id, new_data_set)
     # Check if the ID exists in the database
     cursor.execute("SELECT COUNT(*) FROM user_data WHERE id = ?", (user_id,))
     count = cursor.fetchone()[0]
 
     if count > 0:
         # Update years, islands, and months for the provided ID
-        cursor.execute("UPDATE user_data SET years = ?, islands = ?, months = ? WHERE id = ?", (new_years, new_islands, new_months, user_id))
+        cursor.execute("UPDATE user_data SET years = ?, islands = ?, months = ?, data_set = ? WHERE id = ?", (new_years, new_islands, new_months, new_data_set, user_id))
         conn.commit()
         
         if debug:
-            print(f"User data for ID '{user_id}' updated: Years - {new_years}, Islands - {new_islands}, Months - {new_months}")  # Print updated info
+            print(f"User data for ID '{user_id}' updated: Years - {new_years}, Islands - {new_islands}, Months - {new_months}, Data Set - {new_data_set}")  # Print updated info
     else:
         if debug:
             print(f"No entries found with the ID '{user_id}'. No updates performed.")
@@ -190,16 +237,15 @@ def get_values_by_id(user_id):
     cursor = conn.cursor()
     update_last_accessed(user_id)
 
-    # Retrieve values based on the provided ID
-    cursor.execute("SELECT * FROM user_data WHERE id = ?", (user_id,))
+    # Retrieve specific columns based on the provided ID
+    cursor.execute("SELECT id, name, years, islands, months, data_set, last_accessed FROM user_data WHERE id = ?", (user_id,))
     row = cursor.fetchone()
 
     conn.close()
 
-    if debug:
-        if row:
-            print(f"Values for ID {user_id}: {row}")  # Debug print
-        else:
-            print(f"No values found for ID {user_id}")  # Debug print
+    if row:
+        print(f"Values for ID {user_id}: {row}")  # Debug print
+    else:
+        print(f"No values found for ID {user_id}")  # Debug print
 
     return row if row else None

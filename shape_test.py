@@ -1,4 +1,6 @@
 import os
+import io
+import base64
 import geopandas as gpd
 import pyproj
 import folium
@@ -161,8 +163,6 @@ def get_filtered_data():
         shapefile_path = 'ExampleFiles\\'+str(default_dataSet)+'\\'+str(default_dataSet)+'.shp'
         prjfile_path = 'ExampleFiles\\'+str(default_dataSet)+'\\'+str(default_dataSet)+'.prj'
         
-
-    update_user_data_id(id, years_get[0], islands_get[0], months_get[0])
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
     split_islands = convert_islands(islands_get)
@@ -173,11 +173,6 @@ def get_filtered_data():
     gdf = drop_multipolygons(gdf)
 
     gdf = filter_geo_data(gdf, years_get, split_months, split_islands)
-
-    # Get unique years and islands
-    unique_islands = list(gdf['Island'].unique())
-    unique_years_str = list(gdf['Year'].unique())
-    unique_months_str = list(gdf['FireMonth'].unique())
 
     # Convert 'Year' column to integer type if it's not already
     gdf['Year'] = gdf['Year'].astype(int)
@@ -243,7 +238,6 @@ def get_filtered_data():
         folium.Marker([centroid_lon, centroid_lat], popup=table_html).add_to(marker_cluster)
 
     # Apply coordinate transformation to the 'geometry' column
-    old_geom = gdf['geometry']
     gdf['geometry'] = gdf['geometry'].apply(lambda geom: transform_coordinates(geom, original_proj))
 
     # Convert GeoDataFrame to GeoJSON
@@ -263,7 +257,7 @@ def get_filtered_data():
     # Create the legend HTML content
     legend_html = '''
         <div style="position: fixed; 
-                    top: 20px; right: 20px; width: 120px; 
+                    bottom: 20px; right: 20px; width: 90px; 
                     border: 2px solid grey; z-index: 9999; 
                     background-color: white; opacity: 0.9; padding: 10px;
                     font-size: 20px;">
@@ -280,47 +274,35 @@ def get_filtered_data():
     # Add the legend HTML content to the map
     m.get_root().html.add_child(folium.Element(legend_html))
 
-    # Print the map projection type
-    print("Map Projection Type:", gdf.crs)
-
+    #default map output
     user_folder = 'output\\user_maps\\'+'user_'+str(id_get)
 
     create_user_folder(user_folder)
     map_save = user_folder+ '\\'+ str(id_get)+'_filtered_map.html'
-    print(f"saving to {map_save}")
 
+    #save the map to a temp folder
     m.save(map_save)
 
-    map_data = m._repr_html_()
+    # Read the HTML file contents into a variable
+    with open(map_save, "r") as file:
+        map_data = file.read()
 
-    # Create a new column 'centroid' containing Point objects derived from 'geometry'
-    gdf['geometry'] = old_geom
+    #delete the temp folder that holds the temp html file
+    shutil.rmtree(user_folder)
 
-    # Save GeoDataFrame to a shapefile
-    temp_shapefile_path = user_folder+'\\shapefiles'
-    os.makedirs(temp_shapefile_path, exist_ok=True)
-    gdf.to_file(temp_shapefile_path, driver='ESRI Shapefile')
-
-    # Create a Zip file containing the shapefiles
-    zipfile_path = os.path.join(user_folder, 'shapefile_test.zip')
-    with zipfile.ZipFile(zipfile_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, _, files in os.walk(temp_shapefile_path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                zipf.write(file_path, os.path.relpath(file_path, temp_shapefile_path))
-    # Clean up the temporary shapefiles directory
-    shutil.rmtree(temp_shapefile_path)
-    print(f"saving shape to {user_folder}")
+    update_user_data_id(id, years_get[0], islands_get[0], months_get[0], map_data, dataSet_get)
+    print('-----------------------------------------------------------------')
+    print(id)
+    temp_values = get_values_by_id(id)
+    print(temp_values)
+    print('-----------------------------------------------------------------')
 
     map_url = '/user_maps/user_'+str(id_get)+'/'+str(id_get)+'_filtered_map.html'
-
-    shape_loc = user_folder+'_fireData.zip'
 
     # Return GeoJSON data, map object, unique years, and unique islands
 
     response_data = {
         "mapHtml": map_url,
-        'user_id': shape_loc,
         'map_data': map_data
     }
 
@@ -371,6 +353,8 @@ def get_default_data():
 @app.route('/api/existing', methods=['GET'])
 def db_check():
 
+    default_map = 'default_map.html'
+
     # Retrieve query parameters for 'years' and 'islands'
     param1 = request.args.getlist('param1')
 
@@ -381,41 +365,94 @@ def db_check():
         if debug:
             print("No cached id")
         id_num = insert_entry_with_checked_id()
+        with open(default_map, "r") as file:
+                    map_data = file.read()
     else:
         id_num = int(param1[0])
         if not check_id_exists(id_num):
             if debug:
                 print("It doesn't exist")
             id_num = insert_entry_with_checked_id()
+            with open(default_map, "r") as file:
+                    map_data = file.read()
         else:
             if debug:
                 print("It exists")
+            if not check_map_html_exists(id_num):
+                print("-+-+-+-no default map data found-+-+-+-")
+                with open(default_map, "r") as file:
+                    map_data = file.read()
+            else:
+                print("-+-+-+-Default map data found-+-+-+-")
+                map_data = get_map_html(id_num)
 
     response_data = {
-        "id_num": id_num
+        "id_num": id_num,
+        "map_data": map_data
     }
 
     return response_data
 
-@app.route('/api/moveData', methods=['GET'])
-def move_maps():
+@app.route('/api/mapZip', methods=['GET'])
+def generate_shape_zip():
+    #generate a shapefile with the selected saved perameters
 
     id_get = request.args.get('id_num')
-    user_folder = f'output/user_maps/user_{id_get}'
-    target_folder = f'react/firemap/public/user_maps/user_{id_get}'
 
-    #remove anything at the target destination
+    temp_values = get_values_by_id(id_get)
+
+    years = temp_values[2]
+    islands = temp_values[3]
+    months = temp_values[4]
+    dataSet_get = temp_values[5]
+
+    default_dataSet = '2022_2015_allfires'
+
     try:
-        print("Removing old folders")
-        shutil.rmtree(target_folder)
+        shapefile_path = "ExampleFiles\\"+dataSet_get+"\\"+dataSet_get+".shp"
     except:
-        print("got em")
-    # Move the user_folder to the target_folder
-    shutil.copytree(user_folder, target_folder)
+        shapefile_path = 'ExampleFiles\\'+str(default_dataSet)+'\\'+str(default_dataSet)+'.shp'
 
-    # Remove the original user_folder after moving
+    gdf = gpd.read_file(shapefile_path)  
+
+    # Call the drop_multipolygons function to remove MultiPolygons
+    gdf = drop_multipolygons(gdf)
+
+    gdf = filter_geo_data(gdf, years, months, islands)
+
+    user_folder = 'output\\user_maps\\'+'user_'+str(id_get)
+
+    print(user_folder)
+
+    # Save GeoDataFrame to a shapefile
+    temp_shapefile_path = user_folder+'\\shapefiles'
+    os.makedirs(temp_shapefile_path, exist_ok=True)
+    gdf.to_file(temp_shapefile_path, driver='ESRI Shapefile')
+
+    # Instead of saving to disk, create the Zip file in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(temp_shapefile_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.relpath(file_path, temp_shapefile_path))
+
+    # Get the contents of the Zip file from the buffer
+    zip_buffer.seek(0)
+    zip_contents = zip_buffer.getvalue()
+
+    # Encode the binary data to base64
+    base64_encoded_zip = base64.b64encode(zip_contents).decode('utf-8')
+
+
+    # Clean up the temporary shapefiles directory
     shutil.rmtree(user_folder)
-    return "Cool"
+
+    response_data = {
+        'shape_zip': base64_encoded_zip,
+    }
+
+    return jsonify(response_data)
 
 
 if __name__ == '__main__':

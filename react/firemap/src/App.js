@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import 'leaflet/dist/leaflet.css';
 import {
   Button,
   Drawer,
@@ -64,12 +63,7 @@ const fetchData = async (
     setOpenGood(false);
     setOpenSuccess(true);
     setGeojsonData(map_data);
-    await axios.get('http://localhost:5000/api/moveData', {
-      params: {
-        id_num: savedID,
-      },
-    });
-    console.log('forcing update');
+    console.log('updating map');
     setMapHtmlUrl(mapHtml);
     
 
@@ -139,20 +133,18 @@ const App = () => {
       .then((responses) => {
         const [response1, response2] = responses;
         const { allYears, allIslands, allMonths, allDataSets } = response1.data;
-        const { id_num } = response2.data;
+        const { id_num, map_data } = response2.data;
         setUniqueYears(allYears);
         setUniqueIslands(allIslands);
         setUniqueMonths(allMonths);
         setUniqueDataSets(allDataSets);
+        setGeojsonData(map_data);
         localStorage.setItem('id', id_num);
       })
       .catch((error) => {
         console.error('Error fetching default data:', error);
       });
 
-    if (geojsonData == null){
-        handleGenerateMap()
-    }
   }, []);
 
   // Update selected items and save to localStorage when checkboxes are changed
@@ -235,8 +227,8 @@ const App = () => {
 
   const handleHTMLDownload = async () => {
     try {      
-      const response = await axios.get(mapHtmlUrl);
-      const blob = new Blob([response.data], { type: 'text/html' });
+      const cached_map = geojsonData
+      const blob = new Blob([cached_map], { type: 'text/html' });
 
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -251,28 +243,38 @@ const App = () => {
       console.log('Setting up download link');
   };
 
-  const handleSHPDownload = async () => {
-    try {
-      const savedID = localStorage.getItem('id').toString();
-      const shpUrl = '/user_maps/user_' + savedID + '/shapefile_test.zip';
-  
-      const response = await axios.get(shpUrl, {
-        responseType: 'arraybuffer', // Ensure binary data is received
-      });
-  
-      const blob = new Blob([response.data], { type: 'application/zip' }); // Specify the correct MIME type
-  
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'HWMO_Map_Data.zip';
-  
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error downloading map:', error);
+const handleSHPDownload = async () => {
+  try {
+    const savedID = localStorage.getItem('id').toString();
+    const mapZipApiUrl = `http://localhost:5000/api/mapZip?id_num=${savedID}`;
+
+    const response = await axios.get(mapZipApiUrl);
+    const base64EncodedZip = response.data.shape_zip;
+
+    // Decode base64-encoded ZIP file to binary data
+    const zipData = atob(base64EncodedZip);
+    const arrayBuffer = new ArrayBuffer(zipData.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < zipData.length; i++) {
+      uint8Array[i] = zipData.charCodeAt(i);
     }
-  };
+
+    // Create Blob from binary data
+    const blob = new Blob([uint8Array], { type: 'application/zip' });
+
+    // Create download link and trigger download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'HWMO_Map_Data.zip';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    console.log("Downloaded map")
+  } catch (error) {
+    console.error('Error downloading map:', error);
+  }
+};
 
 const handleGenerateMap = () => {
   fetchData(
@@ -500,10 +502,9 @@ const handleGenerateMap = () => {
               </Alert>
             </Snackbar>
         </Drawer>
-            {/* 
         <div
-          style={{
-            flex: 1,
+          id="mapContainer"
+          style={{ 
             paddingLeft: '20px',
             paddingRight: '20px',
             paddingTop: '20px',
@@ -511,36 +512,15 @@ const handleGenerateMap = () => {
             marginTop: '80px',
           }}
         >
-          {mapHtmlUrl && (
-            <MapContainer style={{ height: '85vh', width: '100%'}}>
-              <iframe 
-                title="Folium Map" 
-                src={`${mapHtmlUrl}?key=${reloadKey}`}
-                width="100%" 
-                height="100%" 
-                frameBorder="0" />
-            </MapContainer>
-          )}
-        </div>
-        */}
-        <div
-          style={{
-            flex: 1,
-            paddingLeft: '20px',
-            paddingRight: '20px',
-            paddingTop: '20px',
-            paddingBottom: '20px',
-            marginTop: '80px',
-          }}
-        >
-          <iframe style={{ height: '85vh', width: '100%', display: 'block', margin: '0 auto'}}
+          <iframe
+            id="mapIframe"
+            style={{height: '85vh' }}
             title="Folium Map"
+            srcDoc={geojsonData}
             width="100%"
             height="100%"
-            srcDoc={geojsonData}
             frameBorder="0"
-            scrolling="no"
-      ></iframe>
+            />
         </div>
         </div>
       )}
