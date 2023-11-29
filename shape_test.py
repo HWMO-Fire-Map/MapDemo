@@ -5,7 +5,7 @@ import geopandas as gpd
 import pyproj
 import folium
 import random
-import json
+import math
 import numpy as np
 import zipfile
 import shutil
@@ -15,6 +15,7 @@ from folium.plugins import MarkerCluster
 from shapely.geometry import Point
 from flask_cors import CORS
 from db_functions import*
+from collections import defaultdict
 
 debug = False
 
@@ -129,9 +130,29 @@ def filter_geo_data(gdf, years, months, islands):
         filtered_gdf = gpd.GeoDataFrame(filtered_rows, crs=gdf.crs, geometry='geometry')
         
         return filtered_gdf
+    
+# Define a function to categorize acreage into groups
+def categorize_acreage(acreage):
+    if acreage <= 0.25:
+        return '0-0.25'
+    elif 0.26 <= acreage <= 9.99:
+        return '0.26-9'
+    elif 10.0 <= acreage <= 99.99:
+        return '10-99'
+    elif 100.0 <= acreage <= 299.99:
+        return '100-299'
+    elif 300.0 <= acreage <= 999.99:
+        return '300-999'
+    elif 1000.0 <= acreage <= 9999.99:
+        return '1000-9999'
+    else:
+        return 'Undefined'
 
 @app.route('/api/data', methods=['GET'])
 def get_filtered_data():
+
+    #set up dic for summary table
+    category_data = defaultdict(lambda: {'count': 0, 'acreage': 0.0})
 
     # Retrieve query parameters for 'years' and 'islands'
     years_get = request.args.getlist('years')
@@ -213,12 +234,17 @@ def get_filtered_data():
         acerage = round(row['Acerage'],2)
         fire_year = row['Year']
         month = row['FireMonth']
+
+        acreage_category = categorize_acreage(acerage)
+
+        # Increment count and sum acres for the category
+        category_data[acreage_category]['count'] += 1
+        category_data[acreage_category]['acreage'] += acerage
         
         # Create marker popup content with comments and area
         popup_content = f'Acres: {acerage}\n'
         popup_content += f'Year: {fire_year}\n'
         popup_content += f'Month: {month}'
-        
 
         # Create an HTML table with the given data
         table_html = f"""
@@ -255,6 +281,59 @@ def get_filtered_data():
             'fillOpacity': 0.6
         }
     ).add_to(m)
+
+    # Sort the filtered data by categories using the categorize_acreage function
+    sorted_data = dict(
+        sorted(
+            category_data.items(),
+            key=lambda x: (
+                float(x[0].split('-')[0]) if x[0] != 'Undefined' else float('inf'),
+                categorize_acreage(float(x[0].split('-')[0])) if x[0] != 'Undefined' else float('inf'),
+            ),
+        )
+    )
+
+    # Calculate 'Total' row separately after sorting
+    total_count = sum(v['count'] for v in category_data.values())
+    total_acres = sum(v['acreage'] for v in category_data.values() if isinstance(v['acreage'], (int, float)) and not math.isnan(v['acreage']))
+
+    # Add 'Total' row back to the sorted data
+    sorted_data['Totals'] = {'count': total_count, 'acreage': total_acres}
+
+
+    # Create the legend HTML content
+    summary_legend_html = '''
+        <div style="position: fixed; 
+                    top: 20px; right: 20px; 
+                    border: 2px solid grey; z-index: 9999; 
+                    background-color: white; opacity: 0.9; padding: 10px;
+                    font-size: 14px;">
+        <table style="width:100%; border-collapse: collapse;">
+            <tr>
+                <th style="border: 1px solid black;">Size Classes (acres)</th>
+                <th style="border: 1px solid black;">Number of Burns</th>
+                <th style="border: 1px solid black;">Burn Acreage</th>
+            </tr>
+    '''
+
+    # Add each category's count and total acres to the legend HTML content
+    for category, values in sorted_data.items():
+        if category != 'Total':  # Exclude the 'Total' row
+            count = values['count']
+            total_acres = values['acreage']
+            summary_legend_html += f'<tr>'
+            summary_legend_html += f'<td style="border: 1px solid black;">{category}</td>'
+            summary_legend_html += f'<td style="border: 1px solid black;">{count}</td>'
+            summary_legend_html += f'<td style="border: 1px solid black;">{round(total_acres, 2)}</td>'
+            summary_legend_html += '</tr>'
+
+    summary_legend_html += '''
+        </table>
+        </div>
+    '''
+
+    # Add the legend HTML content to the map
+    m.get_root().html.add_child(folium.Element(summary_legend_html))
 
     # Create the legend HTML content
     legend_html = '''
