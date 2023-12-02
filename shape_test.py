@@ -9,6 +9,7 @@ import math
 import numpy as np
 import zipfile
 import shutil
+from palettable.colorbrewer.qualitative import Set3_12
 from flask import Flask, jsonify, request
 from shapely.geometry import Polygon, MultiPolygon
 from folium.plugins import MarkerCluster
@@ -200,10 +201,10 @@ def get_filtered_data():
     # Convert 'Year' column to integer type if it's not already
     gdf['Year'] = gdf['Year'].astype(int)
 
-    # Define a color dictionary for each unique year
+    # Define a color dictionary for each unique year using a colorblind-friendly palette
     unique_years = sorted(list(gdf['Year'].unique()))
-    year_colors = {year: "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for year in unique_years}
-
+    year_colors = {year: Set3_12.hex_colors[i % len(Set3_12.hex_colors)] for i, year in enumerate(unique_years)}
+    
     # Define the original projection using the provided WKT format
     original_proj_wkt = read_prj_file(prjfile_path)
 
