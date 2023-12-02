@@ -47,7 +47,7 @@ const fetchData = async (
   savedDataSet = localStorage.getItem('data_set');
   setOpenGood(true);
   try {
-    const response = await axios.get('http://localhost:5000/api/data', {
+    const response = await axios.get('http://127.0.0.1:5000/api/data', {
       params: {
         years: selectedYears.join(','),
         months: selectedMonths.join(','),
@@ -119,12 +119,12 @@ const App = () => {
     }
 
     Promise.all([
-      axios.get('http://localhost:5000/api/list', {
+      axios.get('http://127.0.0.1:5000/api/list', {
         params: {
           dataSet: savedDataSet
         }
       }),
-      axios.get('http://localhost:5000/api/existing', {
+      axios.get('http://127.0.0.1:5000/api/existing', {
         params: {
           param1: savedID,
         },
@@ -184,7 +184,7 @@ const App = () => {
     const savedDataSet = localStorage.getItem('data_set');
   
     try {
-      const response = await axios.get('http://localhost:5000/api/list', {
+      const response = await axios.get('http://127.0.0.1:5000/api/list', {
         params: {
           dataSet: savedDataSet, // Use the updated value from the event
         },
@@ -246,7 +246,7 @@ const App = () => {
 const handleSHPDownload = async () => {
   try {
     const savedID = localStorage.getItem('id').toString();
-    const mapZipApiUrl = `http://localhost:5000/api/mapZip?id_num=${savedID}`;
+    const mapZipApiUrl = `http://127.0.0.1:5000/api/mapZip?id_num=${savedID}`;
 
     const response = await axios.get(mapZipApiUrl);
     const base64EncodedZip = response.data.shape_zip;

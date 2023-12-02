@@ -1,8 +1,6 @@
 geopandas
 pyproj
 folium
-json
-random
-numpy
 flask
+flask-cors
 palettable

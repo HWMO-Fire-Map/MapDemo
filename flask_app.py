@@ -15,9 +15,6 @@ from flask_cors import CORS
 from db_functions import*
 from collections import defaultdict
 
-# User directory
-user_dir = os.path.expanduser('~')
-
 debug = True
 
 app = Flask(__name__)
@@ -181,11 +178,11 @@ def get_filtered_data():
 
     try:
         dataSet_get = dataSet_raw[0][1:-1]
-        shapefile_path = user_dir+"/FireMap/ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
-        prjfile_path = user_dir+'/FireMap/ExampleFiles/'+str(dataSet_get)+'/'+str(dataSet_get)+'.prj'
+        shapefile_path = "ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
+        prjfile_path = 'ExampleFiles/'+str(dataSet_get)+'/'+str(dataSet_get)+'.prj'
     except:
-        shapefile_path = user_dir+'ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
-        prjfile_path = user_dir+'ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.prj'
+        shapefile_path = 'ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
+        prjfile_path = 'ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.prj'
 
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
@@ -357,7 +354,7 @@ def get_filtered_data():
     m.get_root().html.add_child(folium.Element(legend_html))
 
     #default map output
-    user_folder = user_dir+'/FireMap/output/user_maps/'+'user_'+str(id_get)
+    user_folder = 'output/user_maps/'+'user_'+str(id_get)
 
     create_user_folder(user_folder)
     map_save = user_folder+ '/'+ str(id_get)+'_filtered_map.html'
@@ -380,7 +377,7 @@ def get_filtered_data():
         print(temp_values)
         print('-----------------------------------------------------------------')
 
-    map_url = user_dir+'/user_maps/user_'+str(id_get)+'/'+str(id_get)+'_filtered_map.html'
+    map_url = 'user_maps/user_'+str(id_get)+'/'+str(id_get)+'_filtered_map.html'
 
     # Return GeoJSON data, map object, unique years, and unique islands
 
@@ -409,9 +406,9 @@ def get_default_data():
 
     try:
         dataSet_get = dataSet_raw[0][1:-1]
-        shapefile_path = user_dir+"/FireMap/ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
+        shapefile_path = "ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
     except:
-        shapefile_path = user_dir+'/FireMap/ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
+        shapefile_path = 'ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
 
     # Read the shapefile into a GeoDataFrame
     gdf_total = gpd.read_file(shapefile_path)
@@ -496,9 +493,9 @@ def generate_shape_zip():
     default_dataSet = '2022_2015_allfires'
 
     try:
-        shapefile_path = user_dir+"/FireMap/ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
+        shapefile_path = "ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
     except:
-        shapefile_path = user_dir+'/FireMap/ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
+        shapefile_path ='ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
 
     gdf = gpd.read_file(shapefile_path)
 
@@ -507,7 +504,7 @@ def generate_shape_zip():
 
     gdf = filter_geo_data(gdf, years, months, islands)
 
-    user_folder = user_dir+'/FireMap/output/user_maps/'+'user_'+str(id_get)
+    user_folder = '/output/user_maps/'+'user_'+str(id_get)
 
     # Save GeoDataFrame to a shapefile
     temp_shapefile_path = user_folder+'/shapefiles'
@@ -541,4 +538,4 @@ def generate_shape_zip():
 
 
 if __name__ == '__main__':
-    app.run(port=3000)
+    app.run()
