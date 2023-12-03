@@ -1,0 +1,6 @@
+geopandas
+pyproj
+folium
+flask
+flask-cors
+palettable

@@ -3,7 +3,7 @@ rem Set the path to your Python interpreter
 set python_executable=python
 
 rem Set the path to your Python script
-set python_script=shape_test.py
+set python_script=flask_app.py
 
 rem Navigate to the script's directory
 cd %~dp0
