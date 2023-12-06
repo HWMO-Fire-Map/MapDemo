@@ -41,6 +41,15 @@ def create_user_folder(folder_path):
     else:
         print(f"Folder '{folder_path}' already exists.")
 
+# Function to search for zip files in a folder
+def find_zip_files(folder_path):
+    return [os.path.join(root, file) for root, _, files in os.walk(folder_path) for file in files if file.endswith('.zip')]
+
+# Function to check if a file has been unzipped
+def check_unzipped(file_path):
+    unzip_folder = os.path.splitext(file_path)[0]  # Extract folder name without the .zip extension
+    return os.path.exists(unzip_folder)
+
 def sort_months(arr):
     months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -51,6 +60,37 @@ def sort_months(arr):
     other_items = [item for item in arr if item not in months]
 
     return only_months + other_items
+
+# Function to process shapefile and retrieve required information
+def process_shapefile(shapefile_path):
+    gdf_total = gpd.read_file(shapefile_path)
+    unique_months = list(gdf_total['FireMonth'].unique())
+    sorted_months = sort_months(unique_months)
+    all_islands = ','.join(map(str, list(gdf_total['Island'].unique())))
+    all_years = ','.join(map(str, sorted(list(gdf_total['Year'].unique()))))
+    unique_months_str = ','.join(map(str, sorted_months))
+    return all_islands, all_years, unique_months_str
+
+# Function to unzip a file, process shapefile, and update SQLite DB
+def unzip_and_update_db(zip_file, db_connection):
+    try:
+        unzip_folder = os.path.splitext(zip_file)[0]
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            zip_ref.extractall(path=os.path.dirname(zip_file))
+
+        shp_file = '\\'+os.path.splitext(unzip_folder.split('\\')[-1])[0] + '.shp'
+        shp_path = unzip_folder+shp_file
+        if os.path.exists(shp_path):
+            all_islands, all_years, sorted_months = process_shapefile(shp_path)
+            cursor = db_connection.cursor()
+            cursor.execute("INSERT OR IGNORE INTO files (file_name, unzipped, total_islands, total_years, unique_months_str) VALUES (?, ?, ?, ?, ?)", 
+                           (os.path.splitext(os.path.basename(zip_file))[0], 1, all_islands, all_years, sorted_months))
+            db_connection.commit()
+            cursor.close()
+        else:
+            print(f"No shapefile found in '{os.path.basename(zip_file)}'. Skipping database update.")
+    except Exception as e:
+        print(f"Error unzipping '{os.path.basename(zip_file)}': {e}")
 
 def transform_coordinates(geometry, proj):
     if isinstance(geometry, Polygon):
@@ -398,37 +438,62 @@ def get_default_data():
 
     default_dataSet = '2022_2015_allfires'
 
-    dataPath = 'ExampleFiles'
-    data_sets = [name for name in os.listdir(dataPath) if os.path.isdir(os.path.join(dataPath, name))]
+    # Replace 'folder_path' with the directory path you want to search
+    folder_path = 'ExampleFiles'
+    zip_files = find_zip_files(folder_path)
 
-    if debug:
-        print(data_sets)
+    with sqlite3.connect('data_sets.db') as db_connection:
+        cursor = db_connection.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS files (
+                    file_name TEXT PRIMARY KEY, 
+                    unzipped INTEGER, 
+                    total_islands Text, 
+                    total_years Text, 
+                    unique_months_str TEXT)''')
+        cursor.close()
 
-    try:
-        dataSet_get = dataSet_raw[0][1:-1]
-        shapefile_path = "ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
-    except:
-        shapefile_path = 'ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
+        if zip_files:
+            if debug:
+                print("Zip files found:")
+            for zip_file in zip_files:
+                if not check_unzipped(zip_file):
+                    unzip_and_update_db(zip_file, db_connection)
+                else:
+                    print(f"File '{os.path.basename(zip_file)}' already unzipped.")
+        else:
+            if debug:
+                print("No zip files found in the specified folder.")
 
-    # Read the shapefile into a GeoDataFrame
-    gdf_total = gpd.read_file(shapefile_path)
+        file_name = dataSet_raw[0].strip('"')
+        print(file_name)
+        print(default_dataSet)
+        entry = retrieve_file_info(file_name, db_connection)
+        if entry:
+            total_islands, total_years, unique_months_str = entry
+        else:
+            default_data = retrieve_file_info(default_dataSet, db_connection)
+            total_islands, total_years, unique_months_str = default_data
+        data_sets = get_file_names(db_connection)
 
-    unique_months = list(gdf_total['FireMonth'].unique())
-    sorted_months = sort_months(unique_months)
-    if debug:
-        print(sorted_months)
+        year_list = [item for item in total_years.split(',')]
+        island_list = [item for item in total_islands.split(',')]
+        month_list = [item for item in unique_months_str.split(',')]
 
-    # Get unique years and islands
-    total_islands = list(gdf_total['Island'].unique())
-    total_years = sorted(list(gdf_total['Year'].unique()))
-    unique_months_str = sorted_months
 
-    response_data = {
-        "allYears": total_years,
-        "allIslands": total_islands,
-        "allMonths": unique_months_str,
-        "allDataSets": data_sets
-    }
+        print(f'found data set --------------{data_sets}')
+        print(f'Entry value is {entry}')
+        #print(f'default_data value is {default_data}')
+        print(f"Total Islands: {island_list}")
+        print(f"Total Years: {year_list}")
+        print(f"Unique Months: {month_list}")
+
+
+        response_data = {
+            "allYears": year_list,
+            "allIslands": island_list,
+            "allMonths": month_list,
+            "allDataSets": list(data_sets)
+        }
 
     return jsonify(response_data)
 
@@ -538,4 +603,4 @@ def generate_shape_zip():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

@@ -20,6 +20,15 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS user_data (
                     last_accessed DATETIME DEFAULT CURRENT_TIMESTAMP
                 )''')
 
+# SQLite DB setup
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS files (
+               file_name TEXT PRIMARY KEY, 
+               unzipped INTEGER, 
+               total_islands Text, 
+               total_years Text, 
+               unique_months_str TEXT)''')
+
 def check_id_exists(user_id):
     conn = sqlite3.connect('fire_users.db')
     cursor = conn.cursor()
@@ -250,3 +259,17 @@ def get_values_by_id(user_id):
             print(f"No values found for ID {user_id}")  # Debug print
 
     return row if row else None
+
+def get_file_names(db_connection):
+    cursor = db_connection.cursor()
+    cursor.execute("SELECT file_name FROM files")
+    file_names = [name[0] for name in cursor.fetchall()]
+    cursor.close()
+    return file_names
+
+def retrieve_file_info(file_name, db_connection):
+    cursor = db_connection.cursor()
+    cursor.execute("SELECT total_islands, total_years, unique_months_str FROM files WHERE file_name=?", (file_name,))
+    entry = cursor.fetchone()
+    cursor.close()
+    return entry
