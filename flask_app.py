@@ -656,6 +656,24 @@ def delete_folders():
         return jsonify({'message': 'Folders and files deleted successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500  # Handle exceptions
+    
+@app.route('/upload-zip', methods=['POST'])
+def upload_zip():
+    try:
+        if 'file' not in request.files:
+            return {'error': 'No file uploaded'}, 400
+        
+        uploaded_file = request.files['file']
+        if uploaded_file.filename == '':
+            return {'error': 'No selected file'}, 400
+
+        # Save the uploaded file to a specific directory
+        # Replace 'uploads' with your desired directory
+        uploaded_file.save('ExampleFiles/' + uploaded_file.filename)
+
+        return {'message': 'File uploaded successfully'}, 200
+    except Exception as e:
+        return {'error': str(e)}, 500
 
 
 if __name__ == '__main__':
