@@ -12,6 +12,8 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.6.1",
     "bootstrap": "^5.3.2",
+    "chonky": "^2.3.2",
+    "chonky-icon-fontawesome": "^2.3.2",
     "jquery": "^3.7.1",
     "leaflet": "^1.9.4",
     "leaflet.awesome-markers": "^2.0.5",
@@ -21,6 +23,7 @@
     "react-dom": "^18.2.0",
     "react-dropdown-tree-select": "^2.8.0",
     "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.20.1",
     "react-scripts": "5.0.1",
     "react-sidenav": "^4.0.6",
     "web-vitals": "^2.1.4"

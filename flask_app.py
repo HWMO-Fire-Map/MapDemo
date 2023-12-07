@@ -601,6 +601,62 @@ def generate_shape_zip():
 
     return jsonify(response_data)
 
+@app.route('/file-tree')
+def get_file_tree():
+    directory_path = 'ExampleFiles'  # Replace with your folder path
+    file_tree = get_files_in_directory(directory_path)
+    return jsonify(file_tree)
+
+def get_files_in_directory(directory_path):
+    files = []
+    for item in os.listdir(directory_path):
+        item_path = os.path.join(directory_path, item)
+        is_directory = os.path.isdir(item_path)
+
+        file_object = {
+            'id': item,
+            'name': item,
+            'isDir': is_directory,
+        }
+
+        if is_directory:
+            file_object['children'] = get_files_in_directory(item_path)
+
+        files.append(file_object)
+
+    return files
+
+@app.route('/delete-folders', methods=['DELETE'])
+def delete_folders():
+    try:
+        data = request.json  # Get folder and file names from frontend
+
+        conn = sqlite3.connect('data_sets.db')  # Connect to the database
+        cursor = conn.cursor()
+
+        for file_name in data:
+            item_path = os.path.join('ExampleFiles', file_name)  # Assuming ExampleFiles is the root folder
+            print(item_path)
+            if os.path.exists(item_path):
+                print("Path exists")
+                if os.path.isdir(item_path):
+                    print("Removing folder")
+                    shutil.rmtree(item_path)  # Remove the directory and its contents
+                else:
+                    print("Removing file")
+                    os.remove(item_path)  # Remove the file
+
+                # Check if the file_name exists in the database and delete the entry
+                print(f'removing db entry {file_name}')
+                cursor.execute("DELETE FROM files WHERE file_name = ?", (file_name,))
+                conn.commit()
+
+        conn.close()
+
+        return jsonify({'message': 'Folders and files deleted successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500  # Handle exceptions
+
 
 if __name__ == '__main__':
     app.run(debug=True)
