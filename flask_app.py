@@ -636,19 +636,21 @@ def delete_folders():
 
         for file_name in data:
             item_path = os.path.join('ExampleFiles', file_name)  # Assuming ExampleFiles is the root folder
-            print(item_path)
+            base_file_name = file_name
             if os.path.exists(item_path):
-                print("Path exists")
                 if os.path.isdir(item_path):
-                    print("Removing folder")
                     shutil.rmtree(item_path)  # Remove the directory and its contents
                 else:
-                    print("Removing file")
                     os.remove(item_path)  # Remove the file
 
-                # Check if the file_name exists in the database and delete the entry
-                print(f'removing db entry {file_name}')
-                cursor.execute("DELETE FROM files WHERE file_name = ?", (file_name,))
+                    base_file_name = os.path.splitext(file_name)[0]
+                    unzip_folder = os.path.join('ExampleFiles', base_file_name)
+                    try:
+                        shutil.rmtree(unzip_folder)
+                    except FileNotFoundError:
+                        pass  # No unpacked files
+
+                cursor.execute("DELETE FROM files WHERE file_name = ?", (base_file_name,))
                 conn.commit()
 
         conn.close()
@@ -682,7 +684,7 @@ def download_files():
 
     try:
         file_ids = request.args.get('fileIds').split(',')
-        temp_folder = 'output/temp_download_folder'
+        temp_folder = 'output/temp_admin_download_folder'
 
         # Create a temporary folder to store downloaded files
         os.makedirs(temp_folder, exist_ok=True)
