@@ -1,6 +1,4 @@
 const handleAction = async (data) => {
-    console.log("handle", data);
-  
     if (data.id === 'delete_file') {
       try {
         // If there are folders to delete, proceed with the delete API call

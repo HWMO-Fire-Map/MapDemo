@@ -607,6 +607,18 @@ def get_file_tree():
     file_tree = get_files_in_directory(directory_path)
     return jsonify(file_tree)
 
+def get_directory_size(directory):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size
+
+def get_modification_date(path):
+    timestamp = os.path.getmtime(path)
+    return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+
 def get_files_in_directory(directory_path):
     files = []
     for item in os.listdir(directory_path):
@@ -617,10 +629,20 @@ def get_files_in_directory(directory_path):
             'id': item,
             'name': item,
             'isDir': is_directory,
+            'isHidden': is_directory,
+            'openable': bool(0),
+            'files': []
         }
 
+        if not is_directory:
+            file_object['size'] = os.path.getsize(item_path)
+            file_object['modDate'] = datetime.fromtimestamp(os.path.getmtime(item_path)).strftime('%Y-%m-%d %H:%M:%S')
+
+
         if is_directory:
-            file_object['children'] = get_files_in_directory(item_path)
+            file_object['files'] = get_files_in_directory(item_path)
+            file_object['size'] = get_directory_size(item_path)  # Get directory size
+            file_object['modDate'] = get_modification_date(item_path)  # Get modification date
 
         files.append(file_object)
 
@@ -702,10 +724,9 @@ def download_files():
 
         return response
 
-
     except Exception as e:
         return str(e)
-
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
