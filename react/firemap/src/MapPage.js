@@ -27,7 +27,8 @@ import { Stack } from '@mui/system';
 import { pink } from '@mui/material/colors';
 import './App.css'; // Import the CSS file
 import LoginForm from './LoginComponent';
-import FileButton from './FileButton'; 
+import FileButton from './FileButton';
+import FileManagerPage from './FileManagerPage'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -294,28 +295,32 @@ const handleGenerateMap = () => {
   return (
     <div>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }} style={{ backgroundColor: '#1D6069' }}>
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Tabs 
-            value={currentTab} 
-            onChange={handleTabChange}
-            indicatorColor="secondary"
-            textColor="inherit"
-          >
-            <Tab label="HWMO Fire Data" sx={{ color: '#fca41e' }}/>
-            <Tab label="Data Downloads" sx={{ color: '#00c735' }}/>
-          </Tabs>
-          <FileButton />
-          <LoginForm />
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              sx={{ mr: 2 }}
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Tabs 
+              value={currentTab} 
+              onChange={handleTabChange}
+              indicatorColor="secondary"
+              textColor="inherit"
+            >
+              <Tab label="HWMO Fire Data" sx={{ color: '#fca41e' }}/>
+              <Tab label="Data Downloads" sx={{ color: '#00c735' }}/>
+            </Tabs>
+          </div>
+          <div style={{ display: 'flex' }}>
+            <FileButton />
+            <LoginForm />
+          </div>
         </Toolbar>
       </AppBar>
       {currentTab === 0 && (
@@ -574,6 +579,7 @@ const handleGenerateMap = () => {
       </div>
       </Container>
       )}
+
     </div>
   );
 };

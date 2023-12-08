@@ -10,8 +10,8 @@ const FileButton = () => {
   };
 
   return (
-    <Button variant="contained" color="primary" onClick={handleRedirectToLogin}>
-      Go to File Manager
+    <Button sx={{ color: '#d65ef7 !important' }} onClick={handleRedirectToLogin}>
+      File Manager
     </Button>
   );
 };

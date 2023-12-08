@@ -11,26 +11,14 @@ const uploadFileAction = defineFileAction({
   }
 });
 
-const delegateFileAction = defineFileAction({
-  id: "delegate",
+const downloadFileAction = defineFileAction({
+  id: "download",
   fileFilter: (file) => file.isDir,
   button: {
-    name: "Delegate",
+    name: "Download",
     toolbar: true,
     contextMenu: true,
-    icon: ChonkyIconName.loading
-  }
-});
-
-const viewFileAction = defineFileAction({
-  id: "view",
-  requiresSelection: true,
-  fileFilter: (file) => file && !file.isDir,
-  button: {
-    name: "View",
-    toolbar: true,
-    contextMenu: true,
-    icon: ChonkyIconName.file
+    icon: ChonkyIconName.download
   }
 });
 
@@ -46,8 +34,7 @@ const deleteFilesAction = defineFileAction({
   });
 
 export const customActions = [
-  viewFileAction,
+  uploadFileAction,
+  downloadFileAction,
   deleteFilesAction,
-  delegateFileAction,
-  uploadFileAction
 ];

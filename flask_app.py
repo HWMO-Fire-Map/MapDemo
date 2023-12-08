@@ -8,7 +8,7 @@ import math
 import zipfile
 import shutil
 from palettable.colorbrewer.qualitative import Set3_12
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, send_file, request
 from shapely.geometry import Polygon, MultiPolygon
 from folium.plugins import MarkerCluster
 from flask_cors import CORS
@@ -674,6 +674,35 @@ def upload_zip():
         return {'message': 'File uploaded successfully'}, 200
     except Exception as e:
         return {'error': str(e)}, 500
+    
+@app.route('/download-files', methods=['GET'])
+def download_files():
+
+    example_files_dir = 'ExampleFiles'
+
+    try:
+        file_ids = request.args.get('fileIds').split(',')
+        temp_folder = 'output/temp_download_folder'
+
+        # Create a temporary folder to store downloaded files
+        os.makedirs(temp_folder, exist_ok=True)
+
+        # Compress selected files from ExampleFiles into a ZIP archive
+        zip_path = os.path.join(temp_folder, 'downloaded_files.zip')
+        with zipfile.ZipFile(zip_path, 'w') as zip_file:
+            for file_id in file_ids:
+                file_path = os.path.join(example_files_dir, file_id)
+                if os.path.exists(file_path):
+                    zip_file.write(file_path, os.path.basename(file_path))
+
+        # Send the ZIP archive as a response for download
+        response = send_file(zip_path, as_attachment=True)
+
+        return response
+
+
+    except Exception as e:
+        return str(e)
 
 
 if __name__ == '__main__':

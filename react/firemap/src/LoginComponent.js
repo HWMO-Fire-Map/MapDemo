@@ -10,8 +10,8 @@ const LoginForm = () => {
   };
 
   return (
-    <Button variant="contained" color="primary" onClick={handleRedirectToLogin}>
-      Go to Login
+    <Button sx={{ color: '#aec4f2 !important' }} onClick={handleRedirectToLogin}>
+      Login
     </Button>
   );
 };

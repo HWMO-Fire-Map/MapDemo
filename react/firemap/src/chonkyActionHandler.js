@@ -60,6 +60,41 @@ const handleAction = async (data) => {
         console.error('Error uploading file:', error);
       }
     }
+
+    if (data.id === 'download') {
+      try {
+        const selectedFiles = data.state.selectedFiles;
+        if (selectedFiles.length === 0) {
+          console.error('No files selected for download');
+          return;
+        }
+    
+        const fileIds = selectedFiles.map((file) => file.id);
+    
+        // Perform a GET request to download multiple selected files
+        const response = await fetch(`http://127.0.0.1:5000/download-files?fileIds=${fileIds.join(',')}`, {
+          method: 'GET',
+        });
+    
+        if (response.ok) {
+          console.log('Files downloaded successfully');
+    
+          // Handle the downloaded files, e.g., create download links, etc.
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'downloaded_files.zip');
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        } else {
+          console.error('Failed to download files');
+        }
+      } catch (error) {
+        console.error('Error downloading files:', error);
+      }
+    }
   };
   
   export default handleAction;
