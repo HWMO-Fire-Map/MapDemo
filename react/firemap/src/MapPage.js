@@ -15,9 +15,6 @@ import {
   Tabs,
   Tab,
   Container,
-  Card,
-  CardContent,
-  Link
 } from '@mui/material';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
@@ -29,7 +26,6 @@ import MuiAlert from '@mui/material/Alert';
 import { Stack } from '@mui/system';
 import { pink } from '@mui/material/colors';
 import './App.css'; // Import the CSS file
-import LoginForm from './LoginComponent';
 import FileButton from './FileButton';
 import Footer from './footer';
 import FireDataCards from './FireDataCards'
@@ -66,7 +62,6 @@ const fetchData = async (
     const {mapHtml, map_data} =
       response.data;
     localStorage.setItem('user_map', JSON.stringify(mapHtml));
-    console.log(mapHtml);
     setOpenGood(false);
     setOpenSuccess(true);
     setGeojsonData(map_data);
@@ -89,18 +84,17 @@ const MapPage = () => {
   const [selectedMonths, setSelectedMonths] = useState([]);
   const [selectedIsland, setSelectedIsland] = useState([]);
   const [geojsonData, setGeojsonData] = useState(null);
+  //eslint-disable-next-line
   const [mapHtmlUrl, setMapHtmlUrl] = useState('/39_filtered_map.html');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openGood, setOpenGood] = React.useState(false);
   const [openError, setOpenError] = React.useState(false);
   const [openSuccess, setOpenSuccess] = React.useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
   const [uniqueDataSets, setUniqueDataSets] = React.useState([]);
   const [selectedDataSet, setSelectedDataSet] = React.useState([]);
   const [currentTab, setCurrentTab] = useState(0);
 
   useEffect(() => {
-    console.log('Get request sent');
 
     const savedSelectedYears = localStorage.getItem('selectedYears');
     const savedSelectedMonths = localStorage.getItem('selectedMonths');
@@ -210,7 +204,6 @@ const MapPage = () => {
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
-    console.log(newValue)
   };
 
   const clearYearSelection = () => {

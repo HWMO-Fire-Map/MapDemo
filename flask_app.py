@@ -8,6 +8,7 @@ import math
 import zipfile
 import shutil
 import jwt
+import bcrypt
 from datetime import datetime, timedelta
 from palettable.colorbrewer.qualitative import Set3_12
 from flask import Flask, jsonify, send_file, request
@@ -22,14 +23,7 @@ debug = True
 app = Flask(__name__)
 CORS(app)
 
-# Replace this with your actual user data storage or authentication mechanism
-users = {
-    'user1': {'password': 'password1'},
-    'user2': {'password': 'password2'}
-}
-
 app.config['SECRET_KEY'] = '8f42a73054b1749f8f58848be5e6502c'  # Replace with a strong secret key
-
 
 def read_prj_file(file_path):
     try:
@@ -51,6 +45,27 @@ def create_user_folder(folder_path):
                 print(f"Error creating folder: {e}")
     else:
         print(f"Folder '{folder_path}' already exists.")
+
+# Function to securely create a new user
+def create_user(username, password):
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+    conn.commit()
+
+# Function to authenticate a user
+def authenticate_user(username, password):
+        # Connect to SQLite database
+    conn = sqlite3.connect('users.db')
+
+    # Create a cursor object to interact with the database
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT password FROM users WHERE username=?", (username,))
+    hashed_password = cursor.fetchone()
+    if hashed_password:
+        if bcrypt.checkpw(password.encode('utf-8'), hashed_password[0]):
+            return True
+    return False
 
 # Function to search for zip files in a folder
 def find_zip_files(folder_path):
@@ -748,7 +763,7 @@ def login():
         if not username or not password:
             return jsonify({'message': 'Invalid credentials'}), 401
 
-        if username not in users or users[username]['password'] != password:
+        if not authenticate_user(username, password):
             return jsonify({'message': 'Invalid username or password'}), 401
 
         # Encoding the JWT token
