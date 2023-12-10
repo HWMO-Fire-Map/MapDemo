@@ -7,6 +7,7 @@ import handleAction from './chonkyActionHandler';
 import LoginForm from './LoginComponent';
 import FileButton from './FileButton';
 import MainButton from './MainButton';
+import Footer from './footer';
 
 import { AppBar, Toolbar } from '@mui/material';
 
@@ -48,37 +49,41 @@ const FileManagerPage = () => {
   }, []);
 
   return (
-    <div 
-      style={{ 
-        display: 'grid', 
-        gridTemplateRows: 'auto 1fr',
-        paddingLeft: '20px',
-        paddingRight: '20px',
-        paddingTop: '20px',
-        paddingBottom: '20px',
-        marginTop: '80px',
-      
-      }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }} style={{ backgroundColor: '#1D6069' }}>
-        <Toolbar sx={{ display: 'flex', marginLeft: '60px', justifyContent: 'space-between' }}>
-          <MainButton />
-          <div style={{ display: 'flex' }}>
-            <FileButton />
-            <LoginForm />
-          </div>
-        </Toolbar>
-      </AppBar>
+    <div>
+      <div 
+        style={{ 
+          display: 'grid', 
+          gridTemplateRows: 'auto 1fr',
+          paddingLeft: '20px',
+          paddingRight: '20px',
+          paddingTop: '20px',
+          paddingBottom: '20px',
+          marginTop: '80px',
+        
+        }}>
+        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }} style={{ backgroundColor: '#1D6069' }}>
+          <Toolbar sx={{ display: 'flex', marginLeft: '60px', justifyContent: 'space-between' }}>
+            <MainButton />
+            <div style={{ display: 'flex' }}>
+              <FileButton />
+              <LoginForm />
+            </div>
+          </Toolbar>
+        </AppBar>
 
-      <div style={{ height: '80vh'}}>
-        <FullFileBrowser
-          files={fileTree}
-          folderChain={folderChain}
-          fileActions={[...customActions, ChonkyActions.ToggleHiddenFiles]}
-          onFileAction={handleActionWrapper}
-          //defaultFileViewActionId={ChonkyActions.EnableListView.id}
-          // Add other action handlers if needed
-        />
+        <div style={{ height: '80vh'}}>
+          <FullFileBrowser
+            files={fileTree}
+            folderChain={folderChain}
+            fileActions={[...customActions, ChonkyActions.ToggleHiddenFiles]}
+            onFileAction={handleActionWrapper}
+            //defaultFileViewActionId={ChonkyActions.EnableListView.id}
+            // Add other action handlers if needed
+          />
+        </div>
+      
       </div>
+      <Footer/>
     </div>
   );
 };

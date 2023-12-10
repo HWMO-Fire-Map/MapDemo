@@ -28,7 +28,7 @@ import { pink } from '@mui/material/colors';
 import './App.css'; // Import the CSS file
 import LoginForm from './LoginComponent';
 import FileButton from './FileButton';
-import FileManagerPage from './FileManagerPage'
+import Footer from './footer';
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -319,12 +319,25 @@ const handleGenerateMap = () => {
           </div>
           <div style={{ display: 'flex' }}>
             <FileButton />
-            <LoginForm />
           </div>
         </Toolbar>
       </AppBar>
       {currentTab === 0 && (
         <div>
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0, // Position the bar to the right of the Drawer
+                height: '100%',
+                width: '10px',
+                backgroundColor: 'rgba(0, 183, 219, 1)',
+                maxHeight: '85vh',
+                marginTop: '85px',
+                borderTopRightRadius: '10px',
+                borderBottomRightRadius: '10px',
+              }}
+            />
         <Drawer
             variant="persistent"
             anchor="left"
@@ -332,7 +345,7 @@ const handleGenerateMap = () => {
             PaperProps={{
               sx: {
                 width: '300px',
-                marginTop: '80px',
+                marginTop: '85px',
                 backgroundColor: 'rgba(0, 183, 219, 1)',
                 borderTopRightRadius: '10px',
                 borderBottomRightRadius: '10px',
@@ -518,7 +531,7 @@ const handleGenerateMap = () => {
             paddingRight: '20px',
             paddingTop: '20px',
             paddingBottom: '20px',
-            marginTop: '80px',
+            marginTop: '65px',
           }}
         >
           <iframe
@@ -535,7 +548,7 @@ const handleGenerateMap = () => {
       )}
         {currentTab === 1 && (
         <Container maxWidth="md">
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '80px', paddingTop: '20px', background: '#68b6ed', height: '85vh'}}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '80px', paddingTop: '20px', paddingBottom: '20px', background: '#68b6ed', height: 'auto'}}>
           <Container maxWidth="md">
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -579,7 +592,7 @@ const handleGenerateMap = () => {
       </div>
       </Container>
       )}
-
+    <Footer/>
     </div>
   );
 };

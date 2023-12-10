@@ -7,6 +7,8 @@ import folium
 import math
 import zipfile
 import shutil
+import jwt
+from datetime import datetime, timedelta
 from palettable.colorbrewer.qualitative import Set3_12
 from flask import Flask, jsonify, send_file, request
 from shapely.geometry import Polygon, MultiPolygon
@@ -19,6 +21,15 @@ debug = True
 
 app = Flask(__name__)
 CORS(app)
+
+# Replace this with your actual user data storage or authentication mechanism
+users = {
+    'user1': {'password': 'password1'},
+    'user2': {'password': 'password2'}
+}
+
+app.config['SECRET_KEY'] = '8f42a73054b1749f8f58848be5e6502c'  # Replace with a strong secret key
+
 
 def read_prj_file(file_path):
     try:
@@ -726,6 +737,53 @@ def download_files():
 
     except Exception as e:
         return str(e)
+    
+@app.route('/login/auth', methods=['POST'])
+def login():
+    try:
+        data = request.json
+        username = data.get('auth', {}).get('username')
+        password = data.get('auth', {}).get('password')
+
+        if not username or not password:
+            return jsonify({'message': 'Invalid credentials'}), 401
+
+        if username not in users or users[username]['password'] != password:
+            return jsonify({'message': 'Invalid username or password'}), 401
+
+        # Encoding the JWT token
+        token = jwt.encode({'username': username, 'exp': datetime.utcnow() + timedelta(minutes=30)},
+                       app.config['SECRET_KEY'])  
+
+        return jsonify({'token': token}), 200
+
+    except Exception as e:
+        # Print the exception and stack trace for debugging
+        print(f"Exception occurred: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return jsonify({'message': 'Internal Server Error'}), 500
+    
+# Example route protected by token-based authentication
+@app.route('/protected', methods=['GET'])
+def protected():
+    token = request.headers.get('Authorization')
+
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 401
+
+    try:
+        # Verify the token
+        decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        username = decoded_token['username']
+        
+        return jsonify({'message': f'Hello, {username}! This is a protected route.'})
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 401
     
 
 if __name__ == '__main__':
