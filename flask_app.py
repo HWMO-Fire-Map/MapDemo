@@ -785,6 +785,17 @@ def protected():
     except jwt.InvalidTokenError:
         return jsonify({'message': 'Invalid token'}), 401
     
+@app.route('/get_text_file', methods=['GET'])
+def get_text_file():
+    # Read the text file content
+    with open('ExampleFiles/FireDataText.txt', 'r') as file:
+        text_content = file.read()
+    
+    return jsonify({'text_content': text_content})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+    
 
 if __name__ == '__main__':
     app.run(debug=True)

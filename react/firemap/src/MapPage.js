@@ -14,7 +14,10 @@ import {
   Checkbox,
   Tabs,
   Tab,
-  Container
+  Container,
+  Card,
+  CardContent,
+  Link
 } from '@mui/material';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
@@ -29,6 +32,7 @@ import './App.css'; // Import the CSS file
 import LoginForm from './LoginComponent';
 import FileButton from './FileButton';
 import Footer from './footer';
+import FireDataCards from './FireDataCards'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -548,7 +552,7 @@ const handleGenerateMap = () => {
       )}
         {currentTab === 1 && (
         <Container maxWidth="md">
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '80px', paddingTop: '20px', paddingBottom: '20px', background: '#68b6ed', height: 'auto'}}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '80px', marginBottom: '60px', paddingTop: '20px', paddingBottom: '10px', background: '#68b6ed', borderRadius: '10px', height: 'auto'}}>
           <Container maxWidth="md">
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -557,35 +561,7 @@ const handleGenerateMap = () => {
               </Typography>
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="body1" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#02002e'}}>
-                Information on Western Micronesia: which include the islands of Guam, Rota, Saipan, Tinian, and Yap<br />
-                <br />
-                Abstract:<br />
-                This data publication contains vector polygon spatial data showing burn areas from wildfires
-                in 2016-2021 on Guam, Yap State (Federated States of Micronesia-FSM), and the Commonwealth of
-                Northern Marianas Islands-CNMI (Saipan, Tinian, and Rota Islands). Burn areas from wildfire in
-                2015 are also provided for Guam.<br />
-              </Typography>
-              <Typography variant="h6" sx={{ display: 'flex', color: '#02002e'}}>
-                <li>
-                  <a href="https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012">
-                    https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012
-                  </a>
-                </li>
-              </Typography>
-              <Typography variant="body1" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#02002e'}}>
-              <br />Information on Babeldaob Island wildfires<br />
-              <br />
-              Abstract:<br />
-              This data publication contains wildfire locations as well as areas of repeated wildfires on Babeldaob Island, Palau from 2012 to 2021. These data were digitized from a variety of sources: handheld global positioning system (GPS) fire perimeter mapping, aerial photo fire perimeter mapping, and satellite image fire perimeter mapping. In addition to 1) wildfire locations and 2) the areas of repeated wildfires, also included for Babeldaob Island are: 3) streams composed from topographic maps, 4) roads (obtained from Palau Automated Land and Resource Information Service (PALARIS) and updated with 2015 imagery), 5) locations of terrestrial protected areas, 6) mangrove vegetation around the island, 7) Babeldaob Island state boundaries, and 8) Babeldaob coastline.
-              </Typography>
-              <Typography variant="h6" sx={{ display: 'flex', color: '#02002e'}}>
-                <li>
-                  <a href="https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039">
-                  https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039
-                  </a>
-                </li>
-              </Typography>
+            <FireDataCards/>
             </Grid>
           </Grid>
           </Container>

@@ -1,0 +1,17 @@
+Information: Western Micronesia which include the islands of Guam, Rota, Saipan, Tinian, and Yap
+
+Abstract:
+This data publication contains vector polygon spatial data 
+showing burn areas from wildfires in 2016-2021 on 
+Guam, Yap State (Federated States of Micronesia-FSM), and the Commonwealth of
+Northern Marianas Islands-CNMI (Saipan, Tinian, and Rota Islands). Burn areas from wildfire in
+2015 are also provided for Guam.
+
+Link: https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012
+
+Information: Babeldaob Island wildfires
+
+Abstract:
+This data publication contains wildfire locations as well as areas of repeated wildfires on Babeldaob Island, Palau from 2012 to 2021. These data were digitized from a variety of sources: handheld global positioning system (GPS) fire perimeter mapping, aerial photo fire perimeter mapping, and satellite image fire perimeter mapping. In addition to 1) wildfire locations and 2) the areas of repeated wildfires, also included for Babeldaob Island are: 3) streams composed from topographic maps, 4) roads (obtained from Palau Automated Land and Resource Information Service (PALARIS) and updated with 2015 imagery), 5) locations of terrestrial protected areas, 6) mangrove vegetation around the island, 7) Babeldaob Island state boundaries, and 8) Babeldaob coastline.
+
+Link: https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039
