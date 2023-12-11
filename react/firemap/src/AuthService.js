@@ -3,7 +3,7 @@ import axios from 'axios';
 export const login = async (email, password) => {
   try {
     console.log("sending password:", password, "and username:", email)
-    const response = await axios.post('http://127.0.0.1:5000/login/auth', {
+    const response = await axios.post('/login/auth', {
       auth: {
         username: email,
         password: password,

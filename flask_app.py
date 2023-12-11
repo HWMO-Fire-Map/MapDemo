@@ -23,8 +23,14 @@ debug = True
 app = Flask(__name__)
 CORS(app)
 
-app.config['SECRET_KEY'] = '8f42a73054b1749f8f58848be5e6502c'  # Replace with a strong secret key
+file_name = 'key.txt'
+try:
+    with open(file_name, 'r') as file:
+        key_string = file.read()
+except FileNotFoundError:
+    print(f"The file '{file_name}' was not found.")
 
+app.config['SECRET_KEY'] = key_string
 def read_prj_file(file_path):
     try:
         with open(file_path, 'r') as prj_file:
@@ -104,7 +110,7 @@ def unzip_and_update_db(zip_file, db_connection):
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             zip_ref.extractall(path=os.path.dirname(zip_file))
 
-        shp_file = '\\'+os.path.splitext(unzip_folder.split('\\')[-1])[0] + '.shp'
+        shp_file = '/'+os.path.splitext(unzip_folder.split('/')[-1])[0] + '.shp'
         shp_path = unzip_folder+shp_file
         if os.path.exists(shp_path):
             all_islands, all_years, sorted_months = process_shapefile(shp_path)
@@ -228,7 +234,7 @@ def get_filtered_data():
     except:
         print("no dataset")
 
-    default_dataSet = '2022_2015_allfires'
+    default_dataSet = '"2022_2015_allfires"'
 
     if dataSet_raw ==[]:
         dataSet_raw = [default_dataSet]
@@ -485,14 +491,17 @@ def get_default_data():
                 if not check_unzipped(zip_file):
                     unzip_and_update_db(zip_file, db_connection)
                 else:
-                    print(f"File '{os.path.basename(zip_file)}' already unzipped.")
+                    if debug:
+                        print(f"File '{os.path.basename(zip_file)}' already unzipped.")
         else:
             if debug:
                 print("No zip files found in the specified folder.")
 
-        file_name = dataSet_raw[0].strip('"')
-        print(file_name)
-        print(default_dataSet)
+        try:
+            file_name = dataSet_raw[0].strip('"')
+        except:
+            file_name = default_dataSet
+
         entry = retrieve_file_info(file_name, db_connection)
         if entry:
             total_islands, total_years, unique_months_str = entry
@@ -505,13 +514,12 @@ def get_default_data():
         island_list = [item for item in total_islands.split(',')]
         month_list = [item for item in unique_months_str.split(',')]
 
-
-        print(f'found data set --------------{data_sets}')
-        print(f'Entry value is {entry}')
-        #print(f'default_data value is {default_data}')
-        print(f"Total Islands: {island_list}")
-        print(f"Total Years: {year_list}")
-        print(f"Unique Months: {month_list}")
+        if debug:
+            print(f'found data set --------------{data_sets}')
+            print(f'Entry value is {entry}')
+            print(f"Total Islands: {island_list}")
+            print(f"Total Years: {year_list}")
+            print(f"Unique Months: {month_list}")
 
 
         response_data = {
@@ -745,10 +753,22 @@ def download_files():
                 if os.path.exists(file_path):
                     zip_file.write(file_path, os.path.basename(file_path))
 
-        # Send the ZIP archive as a response for download
-        response = send_file(zip_path, as_attachment=True)
+        # Read the contents of the ZIP file
+        with open(zip_path, 'rb') as f:
+            zip_contents = f.read()
 
-        return response
+        # Encode the binary data to base64
+        base64_encoded_zip = base64.b64encode(zip_contents).decode('utf-8')
+
+
+        # Clean up the temporary shapefiles directory
+        shutil.rmtree(temp_folder)
+
+        response_data = {
+            'zip_folder': base64_encoded_zip,
+        }
+
+        return(response_data)
 
     except Exception as e:
         return str(e)
@@ -807,9 +827,6 @@ def get_text_file():
         text_content = file.read()
     
     return jsonify({'text_content': text_content})
-
-if __name__ == '__main__':
-    app.run(debug=True)
     
 
 if __name__ == '__main__':

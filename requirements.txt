@@ -4,4 +4,5 @@ folium
 flask
 flask-cors
 palettable
-jwt
+pyjwt
+bycrypt

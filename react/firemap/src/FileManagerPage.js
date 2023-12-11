@@ -4,7 +4,6 @@ import { ChonkyIconFA } from 'chonky-icon-fontawesome';
 import { setChonkyDefaults } from 'chonky';
 import { customActions } from './chonkyCustomActions';
 import handleAction from './chonkyActionHandler';
-import LoginForm from './LoginComponent';
 import FileButton from './FileButton';
 import MainButton from './MainButton';
 import Footer from './footer';
@@ -19,6 +18,40 @@ setChonkyDefaults({
   iconComponent: ChonkyIconFA,
 });
 
+const FileBrowserWrapper = ({ fileTree, folderChain, customActions, handleAction, setFileTree }) => {
+  const [key, setKey] = useState(0); // State to control the key
+
+  const handleActionWrapper = async (data) => {
+    const actionResult = await handleAction(data); // Perform the action
+
+    // Check if the action type is 'upload' or 'delete'
+    console.log(actionResult)
+    if (actionResult === true) {
+      // Fetch the updated fileTree
+      try {
+        const response = await fetch('/file-tree');
+        const updatedFileTree = await response.json();
+        setFileTree(updatedFileTree); // Update fileTree state
+        setKey((prevKey) => prevKey + 1); // Update key to trigger FullFileBrowser reload
+      } catch (error) {
+        console.error('Error fetching updated file tree:', error);
+      }
+    }
+  };
+
+  return (
+    <div style={{ height: '80vh' }}>
+      <FullFileBrowser
+        key={key} // Use the key to force reload
+        files={fileTree}
+        folderChain={folderChain}
+        fileActions={[...customActions, ChonkyActions.ToggleHiddenFiles]}
+        onFileAction={handleActionWrapper}
+      />
+    </div>
+  );
+};
+
 const FileManagerPage = () => {
   const [fileTree, setFileTree] = useState([]);
   const folderChain = [
@@ -31,16 +64,12 @@ const FileManagerPage = () => {
 
   const fetchFileTree = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/file-tree');
+      const response = await fetch('/file-tree');
       const data = await response.json();
       setFileTree(data);
     } catch (error) {
       console.error('Error fetching file tree:', error);
     }
-  };
-
-  const handleActionWrapper = (data) => {
-    handleAction(data);
   };
 
   useEffect(() => {
@@ -65,21 +94,17 @@ const FileManagerPage = () => {
             <MainButton />
             <div style={{ display: 'flex' }}>
               <FileButton />
-              <LoginForm />
             </div>
           </Toolbar>
         </AppBar>
 
-        <div style={{ height: '80vh'}}>
-          <FullFileBrowser
-            files={fileTree}
-            folderChain={folderChain}
-            fileActions={[...customActions, ChonkyActions.ToggleHiddenFiles]}
-            onFileAction={handleActionWrapper}
-            //defaultFileViewActionId={ChonkyActions.EnableListView.id}
-            // Add other action handlers if needed
-          />
-        </div>
+        <FileBrowserWrapper
+        fileTree={fileTree}
+        folderChain={folderChain}
+        customActions={customActions}
+        handleAction={handleAction}
+        setFileTree={setFileTree}
+      />
       
       </div>
       <Footer/>

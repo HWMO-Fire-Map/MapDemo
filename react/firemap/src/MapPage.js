@@ -39,7 +39,6 @@ const fetchData = async (
   selectedMonths,
   selectedIsland,
   setOpenGood,
-  setMapHtmlUrl,
   setGeojsonData,
   setOpenSuccess,
   setOpenError,
@@ -50,7 +49,7 @@ const fetchData = async (
   savedDataSet = localStorage.getItem('data_set');
   setOpenGood(true);
   try {
-    const response = await axios.get('http://127.0.0.1:5000/api/data', {
+    const response = await axios.get('api/data', {
       params: {
         years: selectedYears.join(','),
         months: selectedMonths.join(','),
@@ -66,7 +65,6 @@ const fetchData = async (
     setOpenSuccess(true);
     setGeojsonData(map_data);
     console.log('updating map');
-    setMapHtmlUrl(mapHtml);
     
 
   } catch (error) {
@@ -84,8 +82,6 @@ const MapPage = () => {
   const [selectedMonths, setSelectedMonths] = useState([]);
   const [selectedIsland, setSelectedIsland] = useState([]);
   const [geojsonData, setGeojsonData] = useState(null);
-  //eslint-disable-next-line
-  const [mapHtmlUrl, setMapHtmlUrl] = useState('/39_filtered_map.html');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openGood, setOpenGood] = React.useState(false);
   const [openError, setOpenError] = React.useState(false);
@@ -99,7 +95,6 @@ const MapPage = () => {
     const savedSelectedYears = localStorage.getItem('selectedYears');
     const savedSelectedMonths = localStorage.getItem('selectedMonths');
     const savedSelectedIsland = localStorage.getItem('selectedIsland');
-    const savedFileLocation = localStorage.getItem('user_map');
     const savedID = localStorage.getItem('id');
     const savedDataSet = localStorage.getItem('data_set');
 
@@ -112,20 +107,17 @@ const MapPage = () => {
     if (savedSelectedIsland) {
       setSelectedIsland(JSON.parse(savedSelectedIsland));
     }
-    if (savedFileLocation) {
-      setMapHtmlUrl(JSON.parse(savedFileLocation));
-    }
     if (savedDataSet) {
       setSelectedDataSet(JSON.parse(savedDataSet));
     }
 
     Promise.all([
-      axios.get('http://127.0.0.1:5000/api/list', {
+      axios.get('api/list', {
         params: {
           dataSet: savedDataSet
         }
       }),
-      axios.get('http://127.0.0.1:5000/api/existing', {
+      axios.get('api/existing', {
         params: {
           param1: savedID,
         },
@@ -185,7 +177,7 @@ const MapPage = () => {
     const savedDataSet = localStorage.getItem('data_set');
   
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/list', {
+      const response = await axios.get('api/list', {
         params: {
           dataSet: savedDataSet, // Use the updated value from the event
         },
@@ -246,9 +238,12 @@ const MapPage = () => {
 const handleSHPDownload = async () => {
   try {
     const savedID = localStorage.getItem('id').toString();
-    const mapZipApiUrl = `http://127.0.0.1:5000/api/mapZip?id_num=${savedID}`;
+    const mapZipApiUrl = 'api/mapZip';
+      const params = {
+        id_num: savedID, // Replace 'savedID' with your variable
+      };
 
-    const response = await axios.get(mapZipApiUrl);
+      const response = await axios.get(mapZipApiUrl, { params });
     const base64EncodedZip = response.data.shape_zip;
 
     // Decode base64-encoded ZIP file to binary data
@@ -282,7 +277,6 @@ const handleGenerateMap = () => {
     selectedMonths,
     selectedIsland,
     setOpenGood,
-    setMapHtmlUrl,
     setGeojsonData,
     setOpenSuccess,
     setOpenError,
