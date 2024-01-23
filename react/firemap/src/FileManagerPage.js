@@ -64,7 +64,7 @@ const FileManagerPage = () => {
 
   const fetchFileTree = async () => {
     try {
-      const response = await fetch('/file-tree');
+      const response = await fetch('http://127.0.0.1:5000/file-tree');
       const data = await response.json();
       setFileTree(data);
     } catch (error) {

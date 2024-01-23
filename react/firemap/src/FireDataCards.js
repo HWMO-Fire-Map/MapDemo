@@ -9,7 +9,7 @@ const FireDataCards = () => {
     // Function to fetch text file content from the Flask backend
     const fetchTextFromFile = async () => {
       try {
-        const response = await axios.get('/get_text_file');
+        const response = await axios.get('http://127.0.0.1:5000/get_text_file');
         setTextFromFile(response.data.text_content);
       } catch (error) {
         console.error('Error fetching text file:', error);

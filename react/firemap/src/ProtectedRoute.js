@@ -16,7 +16,7 @@ const ProtectedRoute = ({ element: Component, ...rest }) => {
       }
 
       try {
-        const response = await axios.get('/protected', {
+        const response = await axios.get('http://127.0.0.1:5000/protected', {
           headers: {
             Authorization: jwtToken,
           },

@@ -221,6 +221,16 @@ def categorize_acreage(acreage):
 @app.route('/api/data', methods=['GET'])
 def get_filtered_data():
 
+    #land area for islands to calculate % burn total
+    island_land_areas = {
+        'Tinian': 25010,  # Replace with actual land area in acres
+        'Saipan': 29400,  # Replace with actual land area in acres
+        'Rota': 21036.8,  # Replace with actual land area in acres
+        'Guam': 135700,   # Replace with actual land area in acres
+        'Palau': 113300,  # Replace with actual land area in acres
+        'Yap': 24710      # Replace with actual land area in acres
+    }
+
     #set up dic for summary table
     category_data = defaultdict(lambda: {'count': 0, 'acreage': 0.0})
 
@@ -259,11 +269,28 @@ def get_filtered_data():
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
     split_islands = convert_islands(islands_get)
+        
 
     gdf = gpd.read_file(shapefile_path)
 
     # Call the drop_multipolygons function to remove MultiPolygons
     gdf = drop_multipolygons(gdf)
+
+    #calculate total land area for selected islands
+    if split_islands == ['']:
+        split_islands = list(gdf['Island'].unique())
+    
+    available_islands = list(gdf['Island'].unique())
+
+    # Islands to filter
+    selected_islands = [island for island in split_islands if island in available_islands]
+
+
+    # Filtering the dictionary based on selected islands
+    filtered_areas = {island: area for island, area in island_land_areas.items() if island in selected_islands}
+
+    # Calculating the total land area of selected islands
+    total_land_area = sum(filtered_areas.values())
 
     gdf = filter_geo_data(gdf, years_get, split_months, split_islands)
 
@@ -370,6 +397,7 @@ def get_filtered_data():
     # Add 'Total' row back to the sorted data
     sorted_data['Totals'] = {'count': total_count, 'acreage': total_acres}
 
+    percent_burned = str(round(((total_acres/total_land_area)*100),2))+"%"
 
     # Create the legend HTML content
     summary_legend_html = '''
@@ -394,8 +422,14 @@ def get_filtered_data():
             summary_legend_html += f'<tr>'
             summary_legend_html += f'<td style="border: 1px solid black;">{category}</td>'
             summary_legend_html += f'<td style="border: 1px solid black;">{count}</td>'
-            summary_legend_html += f'<td style="border: 1px solid black;">{round(total_acres, 2)}</td>'
+            summary_legend_html += f'<td style="border: 1px solid black;">{round(total_acres,2)}</td>'
             summary_legend_html += '</tr>'
+
+    # Add the modified 'Total % of Land Area Burned' row to the legend HTML content
+    summary_legend_html += '<tr>'
+    summary_legend_html += f'<td colspan="2" style="border: 1px solid black;">Total % of Land Area Burned</td>'
+    summary_legend_html += f'<td style="border: 1px solid black;">{percent_burned}</td>'
+    summary_legend_html += '</tr>'
 
     summary_legend_html += '''
         </table>

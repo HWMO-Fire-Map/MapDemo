@@ -60,7 +60,7 @@ const handleAction = async (data) => {
     if (data.id === 'download') {
       const selectedFiles = data.state.selectedFiles;
       const fileIds = selectedFiles.map((file) => file.id);
-      const ZipApiUrl = 'download-files';
+      const ZipApiUrl = 'http://127.0.0.1:5000/download-files';
       const params = { fileIds: fileIds.join(',') };
       
       try {
