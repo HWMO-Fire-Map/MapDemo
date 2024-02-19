@@ -10,6 +10,12 @@ import Footer from './footer';
 
 import { AppBar, Toolbar } from '@mui/material';
 
+// Determine if the code is running in a development environment
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Set the base URL accordingly
+const baseURL = isDevelopment ? 'http://127.0.0.1:5000' : '';
+
 // set hidden files to not be shown by default
 ChonkyActions.ToggleHiddenFiles.option.defaultValue = false;
 
@@ -29,7 +35,7 @@ const FileBrowserWrapper = ({ fileTree, folderChain, customActions, handleAction
     if (actionResult === true) {
       // Fetch the updated fileTree
       try {
-        const response = await fetch('/file-tree');
+        const response = await fetch(`${baseURL}/file-tree`);
         const updatedFileTree = await response.json();
         setFileTree(updatedFileTree); // Update fileTree state
         setKey((prevKey) => prevKey + 1); // Update key to trigger FullFileBrowser reload
@@ -64,7 +70,7 @@ const FileManagerPage = () => {
 
   const fetchFileTree = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/file-tree');
+      const response = await fetch(`${baseURL}/file-tree`);
       const data = await response.json();
       setFileTree(data);
     } catch (error) {

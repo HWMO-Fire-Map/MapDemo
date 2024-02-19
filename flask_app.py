@@ -8,17 +8,21 @@ import math
 import zipfile
 import shutil
 import jwt
+import sqlite3
 import bcrypt
 from datetime import datetime, timedelta
 from palettable.colorbrewer.qualitative import Set3_12
-from flask import Flask, jsonify, send_file, request
+from flask import Flask, jsonify, send_file, request, send_from_directory
 from shapely.geometry import Polygon, MultiPolygon
 from folium.plugins import MarkerCluster
 from flask_cors import CORS
 from db_functions import*
 from collections import defaultdict
 
-debug = True
+# User directory
+user_dir = os.path.expanduser('~')
+
+debug = False
 
 app = Flask(__name__)
 CORS(app)
@@ -112,10 +116,12 @@ def unzip_and_update_db(zip_file, db_connection):
 
         shp_file = '/'+os.path.splitext(unzip_folder.split('/')[-1])[0] + '.shp'
         shp_path = unzip_folder+shp_file
+        if debug:
+            print(f"This is the sph_path: {shp_path}")
         if os.path.exists(shp_path):
             all_islands, all_years, sorted_months = process_shapefile(shp_path)
             cursor = db_connection.cursor()
-            cursor.execute("INSERT OR IGNORE INTO files (file_name, unzipped, total_islands, total_years, unique_months_str) VALUES (?, ?, ?, ?, ?)", 
+            cursor.execute("INSERT OR IGNORE INTO files (file_name, unzipped, total_islands, total_years, unique_months_str) VALUES (?, ?, ?, ?, ?)",
                            (os.path.splitext(os.path.basename(zip_file))[0], 1, all_islands, all_years, sorted_months))
             db_connection.commit()
             cursor.close()
@@ -225,7 +231,7 @@ def get_filtered_data():
     island_land_areas = {
         'Tinian': 25010,  # Replace with actual land area in acres
         'Saipan': 29400,  # Replace with actual land area in acres
-        'Rota': 21036.8,  # Replace with actual land area in acres
+        'Rota': 21036.8,    # Replace with actual land area in acres
         'Guam': 135700,   # Replace with actual land area in acres
         'Palau': 113300,  # Replace with actual land area in acres
         'Yap': 24710      # Replace with actual land area in acres
@@ -244,7 +250,23 @@ def get_filtered_data():
     except:
         print("no dataset")
 
-    default_dataSet = '"2022_2015_allfires"'
+    # Connect to SQLite data sets
+    conn = sqlite3.connect('data_sets.db')
+
+    # Create a cursor object to interact with the database
+    cursor = conn.cursor()
+
+    #select the first entry in the table to be the default
+    cursor.execute("SELECT file_name FROM files LIMIT 1")
+
+    files = cursor.fetchone()
+    files_formatted = files[0].strip()
+    files_clean = f'"{files_formatted}"'
+    print(files_clean)
+
+    conn.close()
+
+    default_dataSet = files_clean
 
     if dataSet_raw ==[]:
         dataSet_raw = [default_dataSet]
@@ -269,7 +291,6 @@ def get_filtered_data():
     #convert the list object to a commma seperated list
     split_months = convert_months(months_get)
     split_islands = convert_islands(islands_get)
-        
 
     gdf = gpd.read_file(shapefile_path)
 
@@ -279,7 +300,7 @@ def get_filtered_data():
     #calculate total land area for selected islands
     if split_islands == ['']:
         split_islands = list(gdf['Island'].unique())
-    
+
     available_islands = list(gdf['Island'].unique())
 
     # Islands to filter
@@ -427,7 +448,7 @@ def get_filtered_data():
 
     # Add the modified 'Total % of Land Area Burned' row to the legend HTML content
     summary_legend_html += '<tr>'
-    summary_legend_html += f'<td colspan="2" style="border: 1px solid black;">Total % of Land Area Burned</td>'
+    summary_legend_html += f'<td colspan="2" style="border: 1px solid black;">Total % Land Area Burned</td>'
     summary_legend_html += f'<td style="border: 1px solid black;">{percent_burned}</td>'
     summary_legend_html += '</tr>'
 
@@ -502,7 +523,22 @@ def get_default_data():
     if debug:
         print(f"----This is the passed dataset {dataSet_raw}----")
 
-    default_dataSet = '2022_2015_allfires'
+    # Connect to SQLite data sets
+    conn = sqlite3.connect('data_sets.db')
+
+    # Create a cursor object to interact with the database
+    cursor = conn.cursor()
+
+    #select the first entry in the table to be the default
+    cursor.execute("SELECT file_name FROM files LIMIT 1")
+
+    files = cursor.fetchone()
+    files_formatted = files[0].strip()
+    print(files_formatted)
+
+    conn.close()
+
+    default_dataSet = files_formatted
 
     # Replace 'folder_path' with the directory path you want to search
     folder_path = 'ExampleFiles'
@@ -511,10 +547,10 @@ def get_default_data():
     with sqlite3.connect('data_sets.db') as db_connection:
         cursor = db_connection.cursor()
         cursor.execute('''CREATE TABLE IF NOT EXISTS files (
-                    file_name TEXT PRIMARY KEY, 
-                    unzipped INTEGER, 
-                    total_islands Text, 
-                    total_years Text, 
+                    file_name TEXT PRIMARY KEY,
+                    unzipped INTEGER,
+                    total_islands Text,
+                    total_years Text,
                     unique_months_str TEXT)''')
         cursor.close()
 
@@ -612,6 +648,8 @@ def db_check():
 
 @app.route('/api/mapZip', methods=['GET'])
 def generate_shape_zip():
+    if debug:
+        print("creating shp download")
     #generate a shapefile with the selected saved perameters
 
     id_get = request.args.get('id_num')
@@ -623,12 +661,41 @@ def generate_shape_zip():
     months = temp_values[4]
     dataSet_get = temp_values[5]
 
-    default_dataSet = '2022_2015_allfires'
+    # Connect to SQLite data sets
+    conn = sqlite3.connect('data_sets.db')
+
+    # Create a cursor object to interact with the database
+    cursor = conn.cursor()
+
+    #select the first entry in the table to be the default
+    cursor.execute("SELECT file_name FROM files LIMIT 1")
+
+    files = cursor.fetchone()
+    files_formatted = files[0].strip()
+    files_clean = f'"{files_formatted}"'
+    print(files_clean)
+
+    conn.close()
+
+    default_dataSet = files_clean
+
+    if debug:
+        print(f"mapZip Years: {years}")
+        print(f"mapZip Islands: {islands}")
+        print(f"mapZip Months: {months}")
+        print(f"mapZip Dataset: {dataSet_get}")
 
     try:
-        shapefile_path = "ExampleFiles/"+dataSet_get+"/"+dataSet_get+".shp"
+        shapefile_path = "ExampleFiles/"+str(dataSet_get)+"/"+str(dataSet_get)+".shp"
+        if debug:
+            print("Found existing dataset to download")
     except:
         shapefile_path ='ExampleFiles/'+str(default_dataSet)+'/'+str(default_dataSet)+'.shp'
+        if debug:
+            print("No dataset found using default for download")
+
+    if debug:
+        print(f"This is the shapefile_path in mapZip: {shapefile_path}")
 
     gdf = gpd.read_file(shapefile_path)
 
@@ -637,12 +704,30 @@ def generate_shape_zip():
 
     gdf = filter_geo_data(gdf, years, months, islands)
 
-    user_folder = '/output/user_maps/'+'user_'+str(id_get)
+    user_folder = user_dir+'/output/user_maps/'+'user_'+str(id_get)
+
+    if debug:
+        print(f"saving map to user folder {user_folder}")
+        print(f"This is the user_dir {user_dir}")
 
     # Save GeoDataFrame to a shapefile
     temp_shapefile_path = user_folder+'/shapefiles'
-    os.makedirs(temp_shapefile_path, exist_ok=True)
+    if debug:
+        print(f"saving map to user folder {temp_shapefile_path}")
+
+    try:
+        if debug:
+            print("Attempting to set up temp folder")
+        os.makedirs(temp_shapefile_path, exist_ok=True)
+        if debug:
+            print("Set up temp folder")
+    except OSError as e:
+            print(f"Failed to create directory '{temp_shapefile_path}': {e}")
+    if debug:
+        print("Made the shp folder")
     gdf.to_file(temp_shapefile_path, driver='ESRI Shapefile')
+    if debug:
+        print("converting gdf to file")
 
     # Instead of saving to disk, create the Zip file in memory
     zip_buffer = io.BytesIO()
@@ -651,6 +736,9 @@ def generate_shape_zip():
             for file in files:
                 file_path = os.path.join(root, file)
                 zipf.write(file_path, os.path.relpath(file_path, temp_shapefile_path))
+
+    if debug:
+        print("saved zip data to memory")
 
     # Get the contents of the Zip file from the buffer
     zip_buffer.seek(0)
@@ -748,13 +836,13 @@ def delete_folders():
         return jsonify({'message': 'Folders and files deleted successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500  # Handle exceptions
-    
+
 @app.route('/upload-zip', methods=['POST'])
 def upload_zip():
     try:
         if 'file' not in request.files:
             return {'error': 'No file uploaded'}, 400
-        
+
         uploaded_file = request.files['file']
         if uploaded_file.filename == '':
             return {'error': 'No selected file'}, 400
@@ -763,10 +851,22 @@ def upload_zip():
         # Replace 'uploads' with your desired directory
         uploaded_file.save('ExampleFiles/' + uploaded_file.filename)
 
+        with sqlite3.connect('data_sets.db') as db_connection:
+            cursor = db_connection.cursor()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS files (
+                        file_name TEXT PRIMARY KEY,
+                        unzipped INTEGER,
+                        total_islands Text,
+                        total_years Text,
+                        unique_months_str TEXT)''')
+            cursor.close()
+
+            unzip_and_update_db(('ExampleFiles/' + uploaded_file.filename), db_connection)
+
         return {'message': 'File uploaded successfully'}, 200
     except Exception as e:
         return {'error': str(e)}, 500
-    
+
 @app.route('/download-files', methods=['GET'])
 def download_files():
 
@@ -806,7 +906,7 @@ def download_files():
 
     except Exception as e:
         return str(e)
-    
+
 @app.route('/login/auth', methods=['POST'])
 def login():
     try:
@@ -822,7 +922,7 @@ def login():
 
         # Encoding the JWT token
         token = jwt.encode({'username': username, 'exp': datetime.utcnow() + timedelta(minutes=30)},
-                       app.config['SECRET_KEY'])  
+                       app.config['SECRET_KEY'])
 
         return jsonify({'token': token}), 200
 
@@ -833,7 +933,7 @@ def login():
         traceback.print_exc()
 
         return jsonify({'message': 'Internal Server Error'}), 500
-    
+
 # Example route protected by token-based authentication
 @app.route('/protected', methods=['GET'])
 def protected():
@@ -846,22 +946,62 @@ def protected():
         # Verify the token
         decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
         username = decoded_token['username']
-        
+
         return jsonify({'message': f'Hello, {username}! This is a protected route.'})
 
     except jwt.ExpiredSignatureError:
         return jsonify({'message': 'Token has expired'}), 401
     except jwt.InvalidTokenError:
         return jsonify({'message': 'Invalid token'}), 401
-    
+
 @app.route('/get_text_file', methods=['GET'])
 def get_text_file():
     # Read the text file content
     with open('ExampleFiles/FireDataText.txt', 'r') as file:
         text_content = file.read()
-    
+
     return jsonify({'text_content': text_content})
+
+@app.route('/get_pdf', methods=['POST'])
+def get_file():
+    try:
+        # Get the filename from the POST request data
+        filename = request.json.get('filename')
+        if not filename:
+            raise ValueError('Filename not provided in the request.')
+        
+        folder = 'ExampleFiles'
+
+        # Construct the absolute path to the file
+        file_path = f'{folder}\\{filename}'
+
+        # Use Flask's send_from_directory to send the file
+        return send_from_directory(folder, filename, mimetype='application/pdf')
+    except Exception as e:
+        return str(e), 500
     
+@app.route('/get_text', methods=['POST'])
+def get_text():
+    try:
+        # Get the filename from the POST request data
+        filename = request.json.get('filename')
+        if not filename:
+            raise ValueError('Filename not provided in the request.')
+
+        folder = 'ExampleFiles'
+
+        # Construct the absolute path to the file
+        file_path = f'{folder}/{filename}'
+        print(file_path)
+
+        # Read the text content from the file
+        with open(file_path, 'r') as file:
+            text_content = file.read()
+
+        return {'text_content': text_content}
+    except Exception as e:
+        return str(e), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

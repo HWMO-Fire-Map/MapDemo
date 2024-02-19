@@ -1,11 +1,17 @@
 import axios from 'axios';
 
+// Determine if the code is running in a development environment
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Set the base URL accordingly
+const baseURL = isDevelopment ? 'http://127.0.0.1:5000' : '';
+
 const handleAction = async (data) => {
   try {
     if (data.id === 'delete_file') {
       // DELETE request to delete folders
       const folderNamesToDelete = data.state.selectedFiles.map((file) => file.id);
-      const deleteResponse = await fetch('/delete-folders', {
+      const deleteResponse = await fetch(`${baseURL}/delete-folders`, {
         method: 'DELETE',
         body: JSON.stringify(folderNamesToDelete),
         headers: {
@@ -38,7 +44,7 @@ const handleAction = async (data) => {
           formData.append('file', file);
 
           // Send the file via a POST request to your server
-          const uploadResponse = await fetch('upload-zip', {
+          const uploadResponse = await fetch(`${baseURL}/upload-zip`, {
             method: 'POST',
             body: formData,
           });
@@ -60,7 +66,7 @@ const handleAction = async (data) => {
     if (data.id === 'download') {
       const selectedFiles = data.state.selectedFiles;
       const fileIds = selectedFiles.map((file) => file.id);
-      const ZipApiUrl = 'http://127.0.0.1:5000/download-files';
+      const ZipApiUrl = `${baseURL}/download-files`;
       const params = { fileIds: fileIds.join(',') };
       
       try {
@@ -93,6 +99,81 @@ const handleAction = async (data) => {
         return false;
       }
 
+    }
+
+    if (data.id === 'mouse_click_file') {
+      if (data.payload.clickType === 'double') {
+        const fileName = data.payload.file.id;
+        const fileExtension = fileName.split('.').pop().toLowerCase();
+    
+        if (fileExtension === 'pdf') {
+          console.log(`PDF Selected: ${fileName}`);
+    
+          const serverUrl = `${baseURL}/get_pdf`;
+    
+          try {
+            const response = await fetch(serverUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                filename: fileName,
+              }),
+            });
+    
+            if (response.ok) {
+              const arrayBuffer = await response.arrayBuffer();
+              const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+    
+              // Create a data URL from the Blob and open it in a new tab
+              const url = URL.createObjectURL(blob);
+              window.open(url, '_blank');
+            } else {
+              console.error('Failed to download file. Server returned:', response.status, response.statusText);
+            }
+          } catch (error) {
+            console.error('Failed to download file:', error);
+          }
+        } else if (fileExtension === 'txt') {
+          console.log(`Text File Selected: ${fileName}`);
+          const serverUrl = `${baseURL}/get_text`;
+
+          try {
+            const response = await fetch(serverUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                filename: fileName,
+              }),
+            });
+
+            if (response.ok) {
+              const textContent = await response.text();
+
+              // Replace line breaks with HTML line break tags
+              const formattedTextContent = textContent.replace(/\n/g, '<br>');
+
+              // Open the text content in a new window with wrapping
+              const newWindow = window.open('', '_blank');
+              newWindow.document.write('<html><head><title>Text Viewer</title></head><body>');
+              newWindow.document.write('<pre style="white-space: pre-wrap;">');
+              newWindow.document.write(`${formattedTextContent}`);
+              newWindow.document.write('</pre>');
+              newWindow.document.write('</body></html>');
+            } else {
+              console.error('Failed to load text file. Server returned:', response.status, response.statusText);
+            }
+          } catch (error) {
+            console.error('Failed to load text file:', error);
+          }
+        } else {
+          console.log(`Non-PDF Selected: ${fileName}`);
+          // Add any other actions for non-PDF files if needed
+        }
+      }
     }
   } catch (error) {
     console.error('Error:', error);

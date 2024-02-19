@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+// Determine if the code is running in a development environment
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Set the base URL accordingly
+const baseURL = isDevelopment ? 'http://127.0.0.1:5000' : '';
+
 export const login = async (email, password) => {
   try {
-    const response = await axios.post('http://127.0.0.1:5000/login/auth', {
+    const response = await axios.post(`${baseURL}/login/auth`, {
       auth: {
         username: email,
         password: password,

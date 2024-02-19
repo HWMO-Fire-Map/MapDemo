@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, CardContent, Typography, Link } from '@mui/material';
 
+// Determine if the code is running in a development environment
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Set the base URL accordingly
+const baseURL = isDevelopment ? 'http://127.0.0.1:5000' : '';
+
 const FireDataCards = () => {
   const [textFromFile, setTextFromFile] = useState('');
 
@@ -9,7 +15,7 @@ const FireDataCards = () => {
     // Function to fetch text file content from the Flask backend
     const fetchTextFromFile = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/get_text_file');
+        const response = await axios.get(`${baseURL}/get_text_file`);
         setTextFromFile(response.data.text_content);
       } catch (error) {
         console.error('Error fetching text file:', error);

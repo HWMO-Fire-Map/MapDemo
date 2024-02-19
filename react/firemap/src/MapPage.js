@@ -30,6 +30,12 @@ import FileButton from './FileButton';
 import Footer from './footer';
 import FireDataCards from './FireDataCards'
 
+// Determine if the code is running in a development environment
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Set the base URL accordingly
+const baseURL = isDevelopment ? 'http://127.0.0.1:5000' : '';
+
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -49,7 +55,7 @@ const fetchData = async (
   savedDataSet = localStorage.getItem('data_set');
   setOpenGood(true);
   try {
-    const response = await axios.get('http://127.0.0.1:5000/api/data', {
+    const response = await axios.get(`${baseURL}/api/data`, {
       params: {
         years: selectedYears.join(','),
         months: selectedMonths.join(','),
@@ -112,12 +118,12 @@ const MapPage = () => {
     }
 
     Promise.all([
-      axios.get('http://127.0.0.1:5000/api/list', {
+      axios.get(`${baseURL}/api/list`, {
         params: {
           dataSet: savedDataSet
         }
       }),
-      axios.get('http://127.0.0.1:5000/api/existing', {
+      axios.get(`${baseURL}/api/existing`, {
         params: {
           param1: savedID,
         },
@@ -184,7 +190,7 @@ const MapPage = () => {
     const savedDataSet = localStorage.getItem('data_set');
   
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/list', {
+      const response = await axios.get(`${baseURL}/api/list`, {
         params: {
           dataSet: savedDataSet, // Use the updated value from the event
         },
@@ -245,7 +251,7 @@ const MapPage = () => {
 const handleSHPDownload = async () => {
   try {
     const savedID = localStorage.getItem('id').toString();
-    const mapZipApiUrl = 'http://127.0.0.1:5000/api/mapZip';
+    const mapZipApiUrl = `${baseURL}/api/mapZip`;
       const params = {
         id_num: savedID, // Replace 'savedID' with your variable
       };

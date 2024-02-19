@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 
+// Determine if the code is running in a development environment
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Set the base URL accordingly
+const baseURL = isDevelopment ? 'http://127.0.0.1:5000' : '';
+
 const ProtectedRoute = ({ element: Component, ...rest }) => {
   const [isValidatingToken, setIsValidatingToken] = useState(true);
   const [isValidToken, setIsValidToken] = useState(false);
@@ -16,7 +22,7 @@ const ProtectedRoute = ({ element: Component, ...rest }) => {
       }
 
       try {
-        const response = await axios.get('http://127.0.0.1:5000/protected', {
+        const response = await axios.get(`${baseURL}/protected`, {
           headers: {
             Authorization: jwtToken,
           },
