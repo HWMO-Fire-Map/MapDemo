@@ -30,17 +30,19 @@ const FireDataCards = () => {
       const sections = textFromFile.split('\n\n');
       const cards = [];
   
-      for (let i = 0; i < sections.length; i += 3) {
+      for (let i = 0; i < sections.length; i += 4) {
         const information = sections[i].replace('Information:', '').trim();
         const abstract = sections[i + 1].replace('Abstract:', '').trim();
-        const link = sections[i + 2].replace('Link:', '').trim();
+        const authors = sections[i + 2].replace('Authors:', '').trim();
+        const link = sections[i + 3].replace('Link:', '').trim();
   
         const card = (
-          <Card key={i / 3} variant="outlined" sx={{ marginBottom: '20px' }}>
+          <Card key={i / 4} variant="outlined" sx={{ marginBottom: '20px' }}>
             <CardContent>
               <Typography variant="body1" sx={{ color: '#02002e' }}>
                 <strong>Information: </strong>{information}<br /><br />
-                <strong>Abstract: </strong>{abstract}<br /><br />
+                <strong>Abstract: </strong><br />{abstract}<br /><br />
+                <strong>Authors: </strong><br />{authors}<br /><br />
                 <strong>Link: </strong>
                 <Link href={link} target="_blank" rel="noopener">
                   {link}
